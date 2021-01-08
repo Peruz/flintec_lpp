@@ -1,0 +1,8 @@
+/target
+/debug
+Cargo.lock
+**/*.svg
+!smartsoil/*.svg
+**/*.png
+**/*.jpg
+**/*.pdf
