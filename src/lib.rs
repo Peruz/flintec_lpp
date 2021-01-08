@@ -22,6 +22,7 @@ pub const ERROR_FLT_INVALID: f64 = 999997.;
 pub const ERROR_FLT_SKIPPED: f64 = 999996.;
 pub const ERROR_FLT_PARSE: f64 = 999995.;
 
+/// The main struct for the load (weight) time series
 #[derive(Debug, Clone)]
 pub struct TimeWeight {
     pub time: Vec<NaiveDateTime>,
@@ -36,6 +37,11 @@ impl TimeWeight {
         timeweight
     }
 
+    /// Init a TimeWeight from csv
+    /// setting weight to NAN in case of weight parsing errors,
+    /// but panic for datatime errors.
+    /// Do not check the continuity of the time series and presence of error flags,
+    /// these are checked separately afterwards
     pub fn from_csv(fin: PathBuf) -> TimeWeight {
         let file = File::open(fin).unwrap();
         let buf = BufReader::new(file);
@@ -96,7 +102,7 @@ impl TimeWeight {
         }
         timeweight
     }
-    
+
     /// drops all the datetime with NAN weight, leaving a datetime gap
     /// takes a reference and returns a new TimeWeight
     pub fn removenan(&self) -> TimeWeight {
@@ -174,15 +180,16 @@ impl TimeWeight {
         for wchunk in witer.into_iter() {
             if wchunk.len() == 0 {
                 titer.next();
-                continue
+                continue;
             } else {
                 let area = AreaSeries::new(
                     titer
                         .zip(wchunk)
                         .map(|(x, y)| (TimeZone::from_utc_datetime(&Utc, &x), *y)),
-                        0.0,
-                        &RED.mix(0.2),
-                ).border_style(BLACK.stroke_width(1));
+                    0.0,
+                    &RED.mix(0.2),
+                )
+                .border_style(BLACK.stroke_width(1));
                 chart.draw_series(area)?;
             }
         }

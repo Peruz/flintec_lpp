@@ -1,7 +1,7 @@
-use flintec_lp::make_window;
-use flintec_lp::mavg;
-use flintec_lp::process::parse_cli;
-use flintec_lp::TimeWeight;
+use flintec_lpp::make_window;
+use flintec_lpp::mavg;
+use flintec_lpp::process::parse_cli;
+use flintec_lpp::TimeWeight;
 
 fn main() {
     let (csvin, csvout, side, mavg_max_missing_values, mavg_max_missing_pct_weight) = parse_cli();
