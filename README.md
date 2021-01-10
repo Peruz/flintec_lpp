@@ -1,4 +1,4 @@
-# flintec_lp (log - process - plot)
+# flintec_lpp (log - process - plot)
 This crate compiles the following three binaries for logging, preprocessing, and plotting load time series.
 
 ### 1 flintec_log
