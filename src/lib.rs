@@ -129,6 +129,17 @@ impl TimeWeight {
         }
     }
 
+    /// set to NAN all the load values that are out of range
+    pub fn check_range(&mut self, max_load: f64, min_load: f64) {
+        for w in self.weight.iter_mut() {
+            if (*w > max_load) | (*w < min_load) {
+                println!("setting to NAN value out of range (min: {}, max {}): {}", min_load, max_load,  w);
+                *w = f64::NAN;
+            }
+        }
+    }
+
+
     /// writes the datetime and weight columns as a csv at the given path
     pub fn to_csv(self, fout: PathBuf) {
         let file = File::create(fout).unwrap();

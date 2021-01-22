@@ -1,7 +1,7 @@
 use clap::{App, Arg};
 use std::path::PathBuf;
 
-pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64) {
+pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64, f64, f64) {
     let arg_csvin = Arg::with_name("input_csvfile")
         .help("name for the csv file")
         .short("f")
@@ -31,6 +31,17 @@ pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64) {
         .long("max_missing_values")
         .takes_value(true)
         .default_value("50");
+    let arg_max_load = Arg::with_name("max_load")
+        .help("maximum accepted load value")
+        .long("max_load")
+        .takes_value(true)
+        .default_value("15000");
+    let arg_min_load = Arg::with_name("min_load")
+        .help("minimum accepted load value")
+        .long("min_load")
+        .takes_value(true)
+        .default_value("13000");
+
     let cli_args = App::new("smooth the weight time series")
         .version("0.1.0")
         .author("Luca Peruzzo")
@@ -40,7 +51,10 @@ pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64) {
         .arg(arg_side)
         .arg(arg_mavg_values)
         .arg(arg_mavg_weight)
+        .arg(arg_max_load)
+        .arg(arg_min_load)
         .get_matches();
+
     let csvin = PathBuf::from(cli_args.value_of("input_csvfile").unwrap());
     let csvout = match cli_args.value_of("output_csvfile") {
         Some(p) => PathBuf::from(p),
@@ -61,11 +75,23 @@ pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64) {
         .unwrap_or_default()
         .parse::<f64>()
         .unwrap();
+    let max_load = cli_args
+        .value_of("max_load")
+        .unwrap_or_default()
+        .parse::<f64>()
+        .unwrap();
+    let min_load = cli_args
+        .value_of("min_load")
+        .unwrap_or_default()
+        .parse::<f64>()
+        .unwrap();
     return (
         csvin,
         csvout,
         side,
         mavg_max_missing_values,
         mavg_max_missing_pct_weight,
+        max_load,
+        min_load,
     );
 }
