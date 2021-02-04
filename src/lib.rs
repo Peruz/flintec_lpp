@@ -6,7 +6,6 @@ use std::path::PathBuf;
 pub mod log;
 pub mod plot;
 pub mod process;
-pub mod realiterator;
 
 pub const DT_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 
@@ -277,24 +276,14 @@ pub fn suitable_xfmt(d: chrono::Duration) -> &'static str {
     return xfmt;
 }
 
-pub fn make_window(a: f64, b: f64, s: usize) -> Vec<f64> {
-    let window: Vec<f64> = if a == b {
-        vec![b / (b * s as f64 * 2. + 1.); s * 2 + 1]
-    } else {
-        let step = (b - a) / (s as f64);
-        let up = realiterator::FloatIterator::new_with_step(a, b + step, step);
-        let down = realiterator::FloatIterator::new_with_step(b - step, a - step, step);
-        let updown = up.chain(down);
-        let updown_sum: f64 = updown.clone().sum();
-        updown.into_iter().map(|v| v / updown_sum).collect()
-    };
-    let sum_check: f64 = window.iter().sum();
-    assert!(
-        0.98 < sum_check && sum_check < 1.02,
-        "sum of moving average weights != 1 +- 0.02"
-    );
-    window
+pub fn make_window(w_central: f64, w_side: f64, side: usize) -> Vec<f64> {
+    let w_step = (w_central - w_side) / (side as f64);
+    let up = (0..side + 1).map(|n| w_side + (n as f64 * w_step));
+    let down = up.clone().rev().skip(1);
+    let updown = up.chain(down).collect();
+    updown
 }
+
 
 /// rolls the weighted moving window w over the data v
 /// fills the NAN values with the weighted average when possible:
