@@ -1,6 +1,7 @@
 use chrono::prelude::*;
 use clap::{App, Arg};
 
+/// Takes the CLI arguments to control the logging application.
 pub fn parse_cli_log() -> (String, String, u16, String, u32, u64, bool) {
     let arg_csvfile = Arg::with_name("csvfile")
         .help("name for the csv file")

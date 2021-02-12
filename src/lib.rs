@@ -21,7 +21,7 @@ pub const ERROR_FLT_INVALID: f64 = 999997.;
 pub const ERROR_FLT_SKIPPED: f64 = 999996.;
 pub const ERROR_FLT_PARSE: f64 = 999995.;
 
-/// The main struct for the load (weight) time series
+/// The main struct for the load (weight) time series.
 #[derive(Debug, Clone)]
 pub struct TimeWeight {
     pub time: Vec<NaiveDateTime>,
@@ -29,6 +29,8 @@ pub struct TimeWeight {
 }
 
 impl TimeWeight {
+    /// Initiate a new TimeWeight instance
+    /// using the given capacity for the time and weight vectors
     pub fn new(capacity: usize) -> TimeWeight {
         let time: Vec<NaiveDateTime> = Vec::with_capacity(capacity);
         let weight: Vec<f64> = Vec::with_capacity(capacity);
@@ -36,7 +38,7 @@ impl TimeWeight {
         timeweight
     }
 
-    /// Init a TimeWeight from csv
+    /// Initiate a TimeWeight from csv
     /// setting weight to NAN in case of weight parsing errors,
     /// but panic for datatime errors.
     /// Do not check the continuity of the time series and presence of error flags,
@@ -75,8 +77,9 @@ impl TimeWeight {
         timeweight
     }
 
-    /// fill the datetime gaps with NAN to have continuous datetime
-    /// takes a reference and returns a new TimeWeight
+    /// Fill the datetime gaps with NAN to have continuous datetime.
+    /// Take a reference to the read TimeWeight
+    /// and return a new continuous TimeWeight.
     pub fn fillnan_missing_datetime(&self) -> TimeWeight {
         let mut timeweight = TimeWeight::new(self.time.len());
         let datetime_first = self.time[0];
@@ -102,8 +105,8 @@ impl TimeWeight {
         timeweight
     }
 
-    /// drops all the datetime with NAN weight, leaving a datetime gap
-    /// takes a reference and returns a new TimeWeight
+    /// Drop all the datetime with NAN weight, leaving a datetime gap.
+    /// Take a reference and returns a new TimeWeight.
     pub fn removenan(&self) -> TimeWeight {
         let mut timeweight = TimeWeight::new(self.time.len());
         for (&dt, &w) in self.time.iter().zip(self.weight.iter()) {
@@ -117,8 +120,8 @@ impl TimeWeight {
         timeweight
     }
 
-    /// consider all the values > max_value as invalid and replace with NAN
-    /// takes a mutable reference to modify the TimeWeight in-place
+    /// Consider all the values > max_value as invalid and replace them with NAN.
+    /// Take a mutable reference to modify the TimeWeight in-place.
     pub fn replacenan_invalid(&mut self, max_value: f64) {
         for w in self.weight.iter_mut() {
             if *w > max_value {
@@ -128,7 +131,7 @@ impl TimeWeight {
         }
     }
 
-    /// set to NAN all the load values that are out of range
+    /// Set to NAN all the load values that are out of range.
     pub fn check_range(&mut self, max_load: f64, min_load: f64) {
         for w in self.weight.iter_mut() {
             if (*w > max_load) | (*w < min_load) {
@@ -139,7 +142,7 @@ impl TimeWeight {
     }
 
 
-    /// writes the datetime and weight columns as a csv at the given path
+    /// Write the datetime and weight columns as a csv at the given path.
     pub fn to_csv(self, fout: PathBuf) {
         let file = File::create(fout).unwrap();
         let mut buf = BufWriter::new(file);
@@ -150,7 +153,7 @@ impl TimeWeight {
         }
     }
 
-    /// plots the weight time series to svg
+    /// Plot the weight time series to svg.
     pub fn plot_datetime(self, fout: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         let (xmindt, xmaxdt): (NaiveDateTime, NaiveDateTime) = min_and_max(&self.time[..]);
         let xspan: chrono::Duration = xmaxdt - xmindt;
@@ -284,13 +287,11 @@ pub fn make_window(w_central: f64, w_side: f64, side: usize) -> Vec<f64> {
     updown
 }
 
-
-/// rolls the weighted moving window w over the data v
-/// fills the NAN values with the weighted average when possible:
-/// 1) sufficient number of data, i.e.,
-///     number missing data under the window < max_missing_v
+/// Roll the weighted moving window w over the data v,
+/// fill the NAN values with the weighted average when possible:
+/// 1) sufficient number of data, i.e., number missing data under the window < max_missing_v.
 /// 2) the window weight associated with the present data is sufficient, i.e.,
-///     the percentage of missing weight is < than max_missing_wpct
+///     the percentage of missing weight is < than max_missing_wpct.
 pub fn mavg(v: &[f64], w: &[f64], max_missing_v: usize, max_missing_wpct: f64) -> Vec<f64> {
     let len_v: i32 = v.len() as i32;
     let len_w: i32 = w.len() as i32;

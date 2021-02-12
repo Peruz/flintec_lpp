@@ -1,6 +1,7 @@
 use clap::{App, Arg};
 use std::path::PathBuf;
 
+/// Takes the CLI arguments to set the processing parameters.
 pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64, f64, f64) {
     let arg_csvin = Arg::with_name("input_csvfile")
         .help("name for the csv file")
