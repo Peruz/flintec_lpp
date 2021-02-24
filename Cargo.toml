@@ -1,9 +1,9 @@
 [package]
 name = "flintec_lpp"
-version = "0.1.4"
+version = "0.1.5"
 authors = ["Peruz <lucaperuzzo@outlook.com>"]
 edition = "2018"
-license = "MIT OR Apache-2.0"
+license = "GPL-3"
 repository = "https://github.com/Peruz/flintec_lpp"
 description = "CLI apps for logging, processing, and plotting weight time series from Flintec load cells - DAD 141.1"
 
@@ -12,5 +12,4 @@ description = "CLI apps for logging, processing, and plotting weight time series
 [dependencies]
 chrono = "0.4.19"
 clap = "2.33.3"
-# plotters = {git = "https://github.com/38/plotters.git"}
 plotters = "0.3.0"
