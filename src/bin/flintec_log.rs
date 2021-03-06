@@ -10,8 +10,8 @@ use std::net::{Ipv4Addr, SocketAddrV4, TcpStream};
 use std::time::Duration;
 
 fn main() {
-    let timeout: Duration = Duration::new(5, 0);
-    let connection_retry: Duration = Duration::new(30, 0);
+    let timeout: Duration = Duration::new(15, 0); // seconds, nanoseconds
+    let connection_retry: Duration = Duration::new(30, 0); // seconds, nanoseconds
 
     // get CLI arguments
     let (csv_name, ip, port, mut tcmd_str, minutes, delay, verbose) = parse_cli_log();
@@ -23,6 +23,7 @@ fn main() {
         let connection = std::net::TcpStream::connect(socket.to_string())?;
         connection.set_nonblocking(false)?;
         connection.set_read_timeout(Some(timeout))?;
+        connection.set_write_timeout(Some(timeout))?;
         connection.set_nodelay(true)?;
         Ok(connection)
     };
