@@ -12,6 +12,7 @@ use std::time::Duration;
 fn main() {
     let timeout: Duration = Duration::new(15, 0); // seconds, nanoseconds
     let connection_retry: Duration = Duration::new(30, 0); // seconds, nanoseconds
+    let write_read_pause: Duration = Duration::new(2, 0); // seconds, nanoseconds
 
     // get CLI arguments
     let (csv_name, ip, port, mut tcmd_str, minutes, delay, verbose) = parse_cli_log();
@@ -81,6 +82,8 @@ fn main() {
             Ok(b) if b == 3 => {}
             _ => println!("warning, failed to write command"),
         }
+
+        std::thread::sleep(write_read_pause);
 
         raw_reading = match connection.read(&mut buffer) {
             Ok(0) => {
