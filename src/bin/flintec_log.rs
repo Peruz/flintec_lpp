@@ -116,13 +116,13 @@ fn main() {
             Ok(_) => {
                 if verbose {
                     println!(
-                        "{}, wrote weight {} to {}, raw reading {}; next at {}",
+                        "{}, wrote load {} to {}, raw reading {}; next at {}",
                         dtr_str, w, csv_name, raw_reading, dtr_next_str
                     );
                 }
             }
             Err(e) => println!(
-                "{}, could not write weight {} to file {}, raw reading {}; next at {}",
+                "{}, could not write load {} to file {}, raw reading {}; next at {}",
                 dtr_str, w, csv_name, raw_reading, e
             ),
         }

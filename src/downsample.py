@@ -20,7 +20,7 @@ data.to_csv(fo_csv)
 plt.figure(figsize=(14, 8))
 plt.plot(
     data10.index,
-    data10.weight,
+    data10.load,
     'o-',
     color='grey',
     linewidth=5,
@@ -28,7 +28,7 @@ plt.plot(
     markerfacecolor='k',
     markeredgecolor='k',
 )
-plt.ylabel('weight [kg]')
+plt.ylabel('load [kg]')
 plt.grid()
 plt.tight_layout()
 plt.savefig(fo_svg)

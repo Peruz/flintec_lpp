@@ -5,7 +5,7 @@ authors = ["Peruz <lucaperuzzo@outlook.com>"]
 edition = "2018"
 license = "GPL-3.0"
 repository = "https://github.com/Peruz/flintec_lpp"
-description = "CLI apps for logging, processing, and plotting weight time series from Flintec load cells - DAD 141.1"
+description = "CLI apps for logging, processing, and plotting load time series from Flintec load cells - DAD 141.1"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

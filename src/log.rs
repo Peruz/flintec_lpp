@@ -59,10 +59,10 @@ pub fn parse_cli_log() -> (String, String, u16, String, u32, u64, bool) {
         .long("verbose")
         .takes_value(false)
         .required(false);
-    let cli_args = App::new("log load cells via telnet")
+    let cli_args = App::new("log load cells")
         .version("0.1.0")
         .author("Luca Peruzzo")
-        .about("simple cli app to log the weight via telnet")
+        .about("simple cli app to log the load cells")
         .arg(arg_csvfile)
         .arg(arg_minutes)
         .arg(arg_hours)
@@ -108,7 +108,7 @@ pub fn prepare_csvfile(file: &str) -> std::fs::File {
     if std::path::Path::new(&file).exists() {
         println!("csvfile {} already exists, values will be appended", file);
     } else {
-        match std::fs::write(&file, "datetime,weight_kg,raw_reading\n") {
+        match std::fs::write(&file, "datetime,load_kg,raw_reading\n") {
             Ok(_) => println!("initiated csvfile {}", file),
             Err(e) => panic!("could not initiate csvfile {}, error: {}", file, e),
         }

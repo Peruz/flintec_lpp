@@ -8,11 +8,16 @@ Valid minutes intervals are 1, 2, 3, 5, 10, 15, 20, 30, and 60 minute(s).
 Valid hours intervals are 1, 2, 3, 6, 12, and 24 hour(s).
 
 ### 2 flintec_process
-CLI app to fill the data gaps with NAN, replace invalid data with NAN, and smooth obtained the load time series with a weighted moving average.
-It uses a moving average with linear weights.
-The width of the window can be adjusted by specifying the number of data point on each side.
-The central weight is the maximum and it is 10 times the first and last point of the window.
-The CLI app saves a new csv file compatible with flintec_plot.
+This CLI app processes the load time series with the following steps:
+1. Read the logged load time series, replacing possible logging or parsing errors with NAN.
+2. Optionally, set outliers to NAN (based on a user-defined range).
+3. Fill the datatime gaps with NAN to have a continuous time series.
+4. Now that all invalid or missing load values are set to NAN, apply a weighted moving average to fill and smooth the load time series.
+It uses a moving average with linear weights between the user-defined central weight (typically the max weight) and the side weight (typically the minimum weight).
+The width of the window can be adjusted by specifying the number of data points on each side.
+Constraints can be set to define when the missing information (number of load values or their cumulative associated weight) is too large to fill the NAN values.
+5. The CLI app saves a new csv file compatible with flintec_plot.
+Note, throughout the crate, load is used for the load cells data, while weight is used for the moving average.
 
 ### 3 flintec_plot
 CLI app to plot the load time series saved by flintec_log as a svg file.
@@ -62,7 +67,7 @@ in general, 204 kg = 1 mV
 
 ### Format
 The app expects the 10-byte DAD format, with flexibility on the position of the decimal separator.
-The first two characters are the description of the value and are excluded from the parsing of the numerical weight value.
+The first two characters are the description of the value and are excluded from the parsing of the numerical load value.
 However, the raw string is also written into the csv file to avoid losing information on the type of reading and recover the values in case of parsing errors.
 Possible whitespace-property characters (Unicode standard) will be correctly trimmed and ignored.
 

@@ -21,32 +21,32 @@ pub const ERROR_FLT_INVALID: f64 = 999997.;
 pub const ERROR_FLT_SKIPPED: f64 = 999996.;
 pub const ERROR_FLT_PARSE: f64 = 999995.;
 
-/// The main struct for the load (weight) time series.
+/// The main struct for the load time series.
 #[derive(Debug, Clone)]
-pub struct TimeWeight {
+pub struct TimeLoad {
     pub time: Vec<NaiveDateTime>,
-    pub weight: Vec<f64>,
+    pub load: Vec<f64>,
 }
 
-impl TimeWeight {
-    /// Initiate a new TimeWeight instance
-    /// using the given capacity for the time and weight vectors
-    pub fn new(capacity: usize) -> TimeWeight {
+impl TimeLoad {
+    /// Initiate a new TimeLoad instance
+    /// using the given capacity for the time and load vectors
+    pub fn new(capacity: usize) -> TimeLoad {
         let time: Vec<NaiveDateTime> = Vec::with_capacity(capacity);
-        let weight: Vec<f64> = Vec::with_capacity(capacity);
-        let timeweight: TimeWeight = TimeWeight { time, weight };
-        timeweight
+        let load: Vec<f64> = Vec::with_capacity(capacity);
+        let timeload: TimeLoad = TimeLoad {time, load};
+        timeload
     }
 
-    /// Initiate a TimeWeight from csv
-    /// setting weight to NAN in case of weight parsing errors,
+    /// Initiate a TimeLoad from csv
+    /// setting load to NAN in case of load parsing errors,
     /// but panic for datatime errors.
     /// Do not check the continuity of the time series and presence of error flags,
     /// these are checked separately afterwards
-    pub fn from_csv(fin: PathBuf) -> TimeWeight {
+    pub fn from_csv(fin: PathBuf) -> TimeLoad {
         let file = File::open(fin).unwrap();
         let buf = BufReader::new(file);
-        let mut timeweight = TimeWeight::new(10000 as usize);
+        let mut timeload = TimeLoad::new(10000 as usize);
         for l in buf.lines().skip(1) {
             let l_unwrap = match l {
                 Ok(l_ok) => l_ok,
@@ -57,73 +57,73 @@ impl TimeWeight {
             };
             let mut l_split = l_unwrap.split(',');
             let l_split_datetime = l_split.next().unwrap();
-            let l_split_weight = l_split.next().unwrap();
-            match l_split_weight.parse() {
+            let l_split_load = l_split.next().unwrap();
+            match l_split_load.parse() {
                 Ok(w) => {
-                    timeweight.weight.push(w);
-                    timeweight
+                    timeload.load.push(w);
+                    timeload
                         .time
                         .push(NaiveDateTime::parse_from_str(l_split_datetime, DT_FORMAT).unwrap());
                 }
                 _ => {
                     println!("invalid measurement found");
-                    timeweight.weight.push(f64::NAN);
-                    timeweight
+                    timeload.load.push(f64::NAN);
+                    timeload
                         .time
                         .push(NaiveDateTime::parse_from_str(l_split_datetime, DT_FORMAT).unwrap());
                 }
             }
         }
-        timeweight
+        timeload
     }
 
     /// Fill the datetime gaps with NAN to have continuous datetime.
-    /// Take a reference to the read TimeWeight
-    /// and return a new continuous TimeWeight.
-    pub fn fillnan_missing_datetime(&self) -> TimeWeight {
-        let mut timeweight = TimeWeight::new(self.time.len());
+    /// Take a reference to the read TimeLoad
+    /// and return a new continuous TimeLoad.
+    pub fn fillnan_missing_datetime(&self) -> TimeLoad {
+        let mut timeload = TimeLoad::new(self.time.len());
         let datetime_first = self.time[0];
         let datetime_second = self.time[1];
         let delta_datetime = datetime_second - datetime_first;
         let mut dt_previous = datetime_first - delta_datetime;
-        for (&dt, &w) in self.time.iter().zip(self.weight.iter()) {
+        for (&dt, &w) in self.time.iter().zip(self.load.iter()) {
             if dt - dt_previous == delta_datetime {
-                timeweight.time.push(dt);
-                timeweight.weight.push(w);
+                timeload.time.push(dt);
+                timeload.load.push(w);
             } else if dt - dt_previous > delta_datetime {
                 let mut expected_datetime = dt_previous + delta_datetime;
                 while expected_datetime < dt {
-                    timeweight.time.push(expected_datetime);
-                    timeweight.weight.push(f64::NAN);
+                    timeload.time.push(expected_datetime);
+                    timeload.load.push(f64::NAN);
                     expected_datetime += delta_datetime;
                 }
-                timeweight.time.push(dt);
-                timeweight.weight.push(w);
+                timeload.time.push(dt);
+                timeload.load.push(w);
             }
             dt_previous = dt;
         }
-        timeweight
+        timeload
     }
 
-    /// Drop all the datetime with NAN weight, leaving a datetime gap.
-    /// Take a reference and returns a new TimeWeight.
-    pub fn removenan(&self) -> TimeWeight {
-        let mut timeweight = TimeWeight::new(self.time.len());
-        for (&dt, &w) in self.time.iter().zip(self.weight.iter()) {
+    /// Drop all the datetime with NAN load, leaving a datetime gap.
+    /// Take a reference and returns a new TimeLoad.
+    pub fn removenan(&self) -> TimeLoad {
+        let mut timeload = TimeLoad::new(self.time.len());
+        for (&dt, &w) in self.time.iter().zip(self.load.iter()) {
             if w.is_nan() {
                 continue;
             } else {
-                timeweight.time.push(dt);
-                timeweight.weight.push(w);
+                timeload.time.push(dt);
+                timeload.load.push(w);
             }
         }
-        timeweight
+        timeload
     }
 
     /// Consider all the values > max_value as invalid and replace them with NAN.
-    /// Take a mutable reference to modify the TimeWeight in-place.
+    /// Take a mutable reference to modify the TimeLoad in-place.
     pub fn replacenan_invalid(&mut self, max_value: f64) {
-        for w in self.weight.iter_mut() {
+        for w in self.load.iter_mut() {
             if *w > max_value {
                 println!("found invalid value: {}", w);
                 *w = f64::NAN;
@@ -133,7 +133,7 @@ impl TimeWeight {
 
     /// Set to NAN all the load values that are out of range.
     pub fn check_range(&mut self, max_load: f64, min_load: f64) {
-        for w in self.weight.iter_mut() {
+        for w in self.load.iter_mut() {
             if (*w > max_load) | (*w < min_load) {
                 println!("setting to NAN value out of range (min: {}, max {}): {}", min_load, max_load,  w);
                 *w = f64::NAN;
@@ -142,18 +142,18 @@ impl TimeWeight {
     }
 
 
-    /// Write the datetime and weight columns as a csv at the given path.
+    /// Write the datetime and load columns as a csv at the given path.
     pub fn to_csv(self, fout: PathBuf) {
         let file = File::create(fout).unwrap();
         let mut buf = BufWriter::new(file);
-        buf.write_all("datetime,weight_kg\n".as_bytes()).unwrap();
-        for (t, w) in self.time.iter().zip(self.weight.iter()) {
+        buf.write_all("datetime,load_kg\n".as_bytes()).unwrap();
+        for (t, w) in self.time.iter().zip(self.load.iter()) {
             buf.write_all(format!("{},{}\n", t.to_string(), w).as_bytes())
                 .unwrap();
         }
     }
 
-    /// Plot the weight time series to svg.
+    /// Plot the load time series to svg.
     pub fn plot_datetime(self, fout: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         let (xmindt, xmaxdt): (NaiveDateTime, NaiveDateTime) = min_and_max(&self.time[..]);
         let xspan: chrono::Duration = xmaxdt - xmindt;
@@ -163,7 +163,7 @@ impl TimeWeight {
         let xminlocal = TimeZone::from_utc_datetime(&Utc, &xmindt);
         let xmaxlocal = TimeZone::from_utc_datetime(&Utc, &xmaxdt);
         let xfmt = suitable_xfmt(xspan);
-        let (ymin, ymax) = min_and_max(&self.weight[..]);
+        let (ymin, ymax) = min_and_max(&self.load[..]);
         let yspan = (ymax - ymin) / 10f64;
         let ymin = ymin - yspan;
         let ymax = ymax + yspan;
@@ -180,14 +180,14 @@ impl TimeWeight {
             .bold_line_style(RGBColor(150, 150, 150).stroke_width(2))
             .set_all_tick_mark_size(2)
             .label_style(("sans-serif", 24))
-            .y_desc("weight [kg]")
+            .y_desc("load [kg]")
             .x_labels(14) // max number of labels
             .x_label_formatter(&|x: &DateTime<Utc>| x.format(xfmt).to_string())
             .y_label_formatter(&|x: &f64| format!("{:5}", x))
             .x_desc(format!("datetime [{}]", xfmt.replace("%", "")))
             .draw()?;
 
-        let witer = &mut self.weight[..].split(|x| x.is_nan());
+        let witer = &mut self.load[..].split(|x| x.is_nan());
         let titer = &mut self.time[..].into_iter();
 
         for wchunk in witer.into_iter() {
@@ -224,12 +224,12 @@ impl TimeWeight {
         // let line = LineSeries::new(
         //     self.time
         //         .iter()
-        //         .zip(self.weight.iter())
+        //         .zip(self.load.iter())
         //         .map(|(x, y)| (TimeZone::from_utc_datetime(&Utc, &x), *y)),
         //     RGBColor(100, 100, 100).stroke_width(5),
         // );
         // chart.draw_series(line)?;
-        // let points = self.time.iter().zip(self.weight.iter()).map(|(x, y)| {
+        // let points = self.time.iter().zip(self.load.iter()).map(|(x, y)| {
         //     Circle::new(
         //         (TimeZone::from_utc_datetime(&Utc, &x), *y),
         //         6,
@@ -241,10 +241,10 @@ impl TimeWeight {
     }
 }
 
-impl std::fmt::Display for TimeWeight {
+impl std::fmt::Display for TimeLoad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "datetime, weight [kg]\n")?;
-        for (t, w) in self.time.iter().zip(self.weight.iter()) {
+        write!(f, "datetime, load [kg]\n")?;
+        for (t, w) in self.time.iter().zip(self.load.iter()) {
             write!(f, "{},{}\n", t.to_string(), w)?
         }
         Ok(())

@@ -1,5 +1,5 @@
 use flintec_lpp::plot::parse_cli;
-use flintec_lpp::TimeWeight;
+use flintec_lpp::TimeLoad;
 
 fn main() {
     let (csvin, svgout) = parse_cli();
@@ -8,8 +8,6 @@ fn main() {
         csvin.to_str().unwrap(),
         svgout.to_str().unwrap()
     );
-    let tw = TimeWeight::from_csv(csvin);
-    // let nonnan_tw = tw.removenan();
-    // nonnan_tw.plot_datetime(svgout).unwrap();
+    let tw = TimeLoad::from_csv(csvin);
     tw.plot_datetime(svgout).unwrap();
 }
