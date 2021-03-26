@@ -1,5 +1,6 @@
 use clap::{App, Arg};
 use std::path::PathBuf;
+use super::VERSION;
 
 /// Takes the CLI arguments that cotrol the plotting of the load time series.
 pub fn parse_cli() -> (PathBuf, PathBuf) {
@@ -16,7 +17,7 @@ pub fn parse_cli() -> (PathBuf, PathBuf) {
         .long("svgfile")
         .takes_value(true);
     let cli_args = App::new("plot load cells data")
-        .version("0.1.0")
+        .version(VERSION.unwrap_or("unknown"))
         .author("Luca Peruzzo")
         .about("simple cli app to plot the load time series")
         .arg(arg_csvin)

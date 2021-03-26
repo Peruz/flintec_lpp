@@ -7,6 +7,8 @@ pub mod log;
 pub mod plot;
 pub mod process;
 
+pub const VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
+
 pub const DT_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
 
 pub const ERROR_STR_GENERAL: &str = "E+999999.";

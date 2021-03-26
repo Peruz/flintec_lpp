@@ -1,5 +1,6 @@
 use clap::{App, Arg};
 use std::path::PathBuf;
+use super::VERSION;
 
 /// Takes the CLI arguments to set the processing parameters.
 pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64, f64, f64) {
@@ -44,7 +45,7 @@ pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64, f64, f64) {
         .default_value("13000");
 
     let cli_args = App::new("smooth the weight time series")
-        .version("0.1.0")
+        .version(VERSION.unwrap_or("unknown"))
         .author("Luca Peruzzo")
         .about("cli to smooth the weight time series")
         .arg(arg_csvin)

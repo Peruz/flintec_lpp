@@ -1,5 +1,6 @@
 use chrono::prelude::*;
 use clap::{App, Arg};
+use super::VERSION;
 
 /// Takes the CLI arguments to control the logging application.
 pub fn parse_cli_log() -> (String, String, u16, String, u32, u64, bool) {
@@ -60,7 +61,7 @@ pub fn parse_cli_log() -> (String, String, u16, String, u32, u64, bool) {
         .takes_value(false)
         .required(false);
     let cli_args = App::new("log load cells")
-        .version("0.2.0")
+        .version(VERSION.unwrap_or("unknown"))
         .author("Luca Peruzzo")
         .about("simple cli app to log the load cells")
         .arg(arg_csvfile)
