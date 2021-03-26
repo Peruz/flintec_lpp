@@ -23,7 +23,7 @@ Note, throughout the crate, load is used for the load cells data, while weight i
 ### 3 flintec_plot
 CLI app to plot the load time series saved by flintec_log as a svg file.
 
-Documentation: [rust_crate](https://docs.rs/flintec_lpp/0.2.0/flintec_lpp/)
+Documentation: [rust_crate](https://crates.io/crates/flintec_lpp)
 
 # Notes on the DAD141.1
 
