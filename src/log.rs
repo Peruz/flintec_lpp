@@ -60,7 +60,7 @@ pub fn parse_cli_log() -> (String, String, u16, String, u32, u64, bool) {
         .takes_value(false)
         .required(false);
     let cli_args = App::new("log load cells")
-        .version("0.1.0")
+        .version("0.2.0")
         .author("Luca Peruzzo")
         .about("simple cli app to log the load cells")
         .arg(arg_csvfile)

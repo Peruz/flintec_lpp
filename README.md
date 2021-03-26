@@ -17,6 +17,7 @@ It uses a moving average with linear weights between the user-defined central we
 The width of the window can be adjusted by specifying the number of data points on each side.
 Constraints can be set to define when the missing information (number of load values or their cumulative associated weight) is too large to fill the NAN values.
 5. The CLI app saves a new csv file compatible with flintec_plot.
+
 Note, throughout the crate, load is used for the load cells data, while weight is used for the moving average.
 
 ### 3 flintec_plot
