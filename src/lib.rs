@@ -157,7 +157,7 @@ impl TimeLoad {
 
     /// Plot the load time series to svg.
     pub fn plot_datetime(self, fout: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-        let (xmindt, xmaxdt): (NaiveDateTime, NaiveDateTime) = min_and_max(&self.time[..]);
+        let (xmindt, xmaxdt): (NaiveDateTime, NaiveDateTime) = min_and_max(self.time.iter());
         let xspan: chrono::Duration = xmaxdt - xmindt;
         let xmargin: chrono::Duration = xspan / 20;
         let xmindt = xmindt - xmargin;
@@ -165,7 +165,7 @@ impl TimeLoad {
         let xminlocal = TimeZone::from_utc_datetime(&Utc, &xmindt);
         let xmaxlocal = TimeZone::from_utc_datetime(&Utc, &xmaxdt);
         let xfmt = suitable_xfmt(xspan);
-        let (ymin, ymax) = min_and_max(&self.load[..]);
+        let (ymin, ymax) = min_and_max(self.load.iter().filter(|x| !x.is_nan()));
         let yspan = (ymax - ymin) / 10f64;
         let ymin = ymin - yspan;
         let ymax = ymax + yspan;
@@ -208,37 +208,6 @@ impl TimeLoad {
                 chart.draw_series(area)?;
             }
         }
-        // other possible styles:
-        // for wchunk in witer.into_iter() {
-        //     if wchunk.len() == 0 {
-        //         titer.next();
-        //         continue
-        //     } else {
-        //         let line = LineSeries::new(
-        //             titer
-        //                 .zip(wchunk)
-        //                 .map(|(x, y)| (TimeZone::from_utc_datetime(&Utc, &x), *y)),
-        //             RGBColor(180, 10, 180).stroke_width(5),
-        //         );
-        //         chart.draw_series(line)?;
-        //     }
-        // }
-        // let line = LineSeries::new(
-        //     self.time
-        //         .iter()
-        //         .zip(self.load.iter())
-        //         .map(|(x, y)| (TimeZone::from_utc_datetime(&Utc, &x), *y)),
-        //     RGBColor(100, 100, 100).stroke_width(5),
-        // );
-        // chart.draw_series(line)?;
-        // let points = self.time.iter().zip(self.load.iter()).map(|(x, y)| {
-        //     Circle::new(
-        //         (TimeZone::from_utc_datetime(&Utc, &x), *y),
-        //         6,
-        //         BLACK.filled(),
-        //     )
-        // });
-        // chart.draw_series(points)?;
         Ok(())
     }
 }
@@ -253,21 +222,27 @@ impl std::fmt::Display for TimeLoad {
     }
 }
 
-pub fn min_and_max<T: std::cmp::PartialOrd + Copy>(s: &[T]) -> (T, T) {
-    let mut self_iter = s.iter();
-    let (mut min, mut max) = match self_iter.next() {
-        Some(v) => (*v, *v),
+pub fn min_and_max<'a, I, T>(mut s: I) -> (T, T)
+    where
+        I: Iterator<Item=&'a T>,
+        T:
+            'a +
+            std::cmp::PartialOrd +
+            Clone, 
+    {
+    let (mut min, mut max) = match s.next() {
+        Some(v) => (v, v),
         None => panic!("could not iterate over slice"),
     };
-    for es in self_iter {
-        if *es > max {
-            max = *es
+    for es in s {
+        if es > max {
+            max = es
         }
-        if *es < min {
-            min = *es
+        if es < min {
+            min = es
         }
     }
-    return (min, max);
+    return (min.clone(), max.clone());
 }
 
 pub fn suitable_xfmt(d: chrono::Duration) -> &'static str {
@@ -290,7 +265,7 @@ pub fn make_window(w_central: f64, w_side: f64, side: usize) -> Vec<f64> {
 }
 
 /// Roll the weighted moving window w over the data v,
-/// fill the NAN values with the weighted average when possible:
+/// also filling the NAN values with the weighted average when possible:
 /// 1) sufficient number of data, i.e., number missing data under the window < max_missing_v.
 /// 2) the window weight associated with the present data is sufficient, i.e.,
 ///     the percentage of missing weight is < than max_missing_wpct.

@@ -22,7 +22,7 @@ pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64, f64, f64) {
         .takes_value(true)
         .default_value("60");
     let arg_mavg_values = Arg::with_name("mavg_values")
-        .help("maximum number of missing weights for the moving average")
+        .help("maximum missing percentage weight for the moving average")
         .short("n")
         .long("max_missing_values")
         .takes_value(true)
@@ -30,7 +30,7 @@ pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64, f64, f64) {
     let arg_mavg_weight = Arg::with_name("mavg_weight")
         .help("maximum number of missing weights for the moving average")
         .short("w")
-        .long("max_missing_values")
+        .long("max_missing_weight")
         .takes_value(true)
         .default_value("50");
     let arg_max_load = Arg::with_name("max_load")
