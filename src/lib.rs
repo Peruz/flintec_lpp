@@ -36,7 +36,7 @@ impl TimeLoad {
     pub fn new(capacity: usize) -> TimeLoad {
         let time: Vec<NaiveDateTime> = Vec::with_capacity(capacity);
         let load: Vec<f64> = Vec::with_capacity(capacity);
-        let timeload: TimeLoad = TimeLoad {time, load};
+        let timeload: TimeLoad = TimeLoad { time, load };
         timeload
     }
 
@@ -137,12 +137,14 @@ impl TimeLoad {
     pub fn check_range(&mut self, max_load: f64, min_load: f64) {
         for w in self.load.iter_mut() {
             if (*w > max_load) | (*w < min_load) {
-                println!("setting to NAN value out of range (min: {}, max {}): {}", min_load, max_load,  w);
+                println!(
+                    "setting to NAN value out of range (min: {}, max {}): {}",
+                    min_load, max_load, w
+                );
                 *w = f64::NAN;
             }
         }
     }
-
 
     /// Write the datetime and load columns as a csv at the given path.
     pub fn to_csv(self, fout: PathBuf) {
@@ -223,13 +225,10 @@ impl std::fmt::Display for TimeLoad {
 }
 
 pub fn min_and_max<'a, I, T>(mut s: I) -> (T, T)
-    where
-        I: Iterator<Item=&'a T>,
-        T:
-            'a +
-            std::cmp::PartialOrd +
-            Clone, 
-    {
+where
+    I: Iterator<Item = &'a T>,
+    T: 'a + std::cmp::PartialOrd + Clone,
+{
     let (mut min, mut max) = match s.next() {
         Some(v) => (v, v),
         None => panic!("could not iterate over slice"),
@@ -237,8 +236,7 @@ pub fn min_and_max<'a, I, T>(mut s: I) -> (T, T)
     for es in s {
         if es > max {
             max = es
-        }
-        if es < min {
+        } else if es < min {
             min = es
         }
     }
