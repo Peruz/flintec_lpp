@@ -145,23 +145,23 @@ fn main() {
 
         // recover datetime
         while dtr_next <= Local::now() {
-            println!("skipping {} because it has already passed", dtr_next_str);
-            dtr_next = dtr_next + minutes_duration;
-            dtr_next_str = dtr_next.format(DT_FORMAT).to_string();
-            match write!(&mut csvfile, "{},{}\n", dtr_str, ERROR_STR_SKIPPED) {
+            println!("skipping next reading at {} because it has already passed", dtr_next_str);
+            match write!(&mut csvfile, "{},{}\n", dtr_next_str, ERROR_STR_SKIPPED) {
                 Ok(_) => {
                     println!(
                         "datetime {}, wrote skipped value {} to file {}",
-                        dtr_str, ERROR_STR_SKIPPED, csv_name,
+                        dtr_next_str, ERROR_STR_SKIPPED, csv_name,
                     );
                 }
                 Err(e) => {
                     println!(
                         "datetime {}, could not write skipped value {} to file {}, error {}",
-                        dtr_str, ERROR_STR_SKIPPED, csv_name, e
+                        dtr_next_str, ERROR_STR_SKIPPED, csv_name, e
                     );
                 }
             }
+            dtr_next = dtr_next + minutes_duration;
+            dtr_next_str = dtr_next.format(DT_FORMAT).to_string();
         }
 
         // wait for the next loop
