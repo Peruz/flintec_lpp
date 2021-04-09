@@ -235,6 +235,19 @@ impl TimeLoad {
             self.load.remove(bad_index);
         }
     }
+
+    pub fn rm_timeinterval(&mut self, time_init: NaiveTime, time_stop: NaiveTime) {
+        println!("intial len {}", self.time.len());
+        let (keep_datetime, keep_load): (Vec<NaiveDateTime>, Vec<f64>) = self
+            .time
+            .iter()
+            .zip(self.load.iter())
+            .filter(|(&t, _)| (t.time() < time_init) | (t.time() > time_stop))
+            .unzip();
+        self.time = keep_datetime;
+        self.load = keep_load;
+        println!("final len {}", self.time.len());
+    }
 }
 
 impl std::fmt::Display for TimeLoad {
