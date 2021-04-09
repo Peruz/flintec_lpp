@@ -2,6 +2,7 @@ use flintec_lpp::make_window;
 use flintec_lpp::mavg;
 use flintec_lpp::process::parse_cli;
 use flintec_lpp::TimeLoad;
+use flintec_lpp::read_bad_datetimes;
 
 fn main() {
     let (
@@ -12,6 +13,7 @@ fn main() {
         mavg_max_missing_pct_weight,
         min_load,
         max_load,
+        file_bad_datetimes,
     ) = parse_cli();
 
     println!(
@@ -19,17 +21,28 @@ fn main() {
         csvin.to_str().unwrap(),
         csvout.to_str().unwrap()
     );
-    let tw = TimeLoad::from_csv(csvin);
+    let mut tw = TimeLoad::from_csv(csvin);
+
+    match file_bad_datetimes {
+        Some(f) => {
+            let vec_bad_dateimes = read_bad_datetimes(f);
+            tw.rm_datetime(vec_bad_dateimes);
+        },
+        None => (),
+    }
+
     let mut ftw = tw.fillnan_missing_datetime();
     ftw.replacenan_invalid(999994.);
     ftw.check_range(min_load, max_load);
-    let mavg_window = make_window(5., 1., side);
-    let smooth = mavg(
-        &ftw.load[..],
-        &mavg_window,
-        mavg_max_missing_values,
-        mavg_max_missing_pct_weight,
-    );
-    ftw.load = smooth;
+    if side != 0 {
+        let mavg_window = make_window(5., 1., side);
+        let smooth = mavg(
+            &ftw.load[..],
+            &mavg_window,
+            mavg_max_missing_values,
+            mavg_max_missing_pct_weight,
+        );
+        ftw.load = smooth;
+    }
     ftw.to_csv(csvout);
 }

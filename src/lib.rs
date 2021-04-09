@@ -212,6 +212,29 @@ impl TimeLoad {
         }
         Ok(())
     }
+
+    pub fn rm_datetime(&mut self, mut bad_datetimes: Vec<NaiveDateTime>) {
+        // Make sure it is sorted to then reverse it.
+        // As we expect the vector to be already sorted,
+        // sort() is the best algorithm, faster than sort_unstable(), see doc.
+        bad_datetimes.sort();
+        let len_bad_datetimes = bad_datetimes.len();
+        let mut bad_indexes: Vec<usize> = Vec::with_capacity(len_bad_datetimes);
+        for bdt in bad_datetimes.into_iter() {
+            let index_bad = self.time.iter().position(|d| *d == bdt);
+            match index_bad {
+                Some(i) => {
+                    println!("found and removed {} at index {}", bdt, i);
+                    bad_indexes.push(i);
+                },
+                None => println!("{} not found", bdt),
+            }
+        }
+        for bad_index in bad_indexes.into_iter().rev() {
+            self.time.remove(bad_index);
+            self.load.remove(bad_index);
+        }
+    }
 }
 
 impl std::fmt::Display for TimeLoad {
@@ -222,6 +245,23 @@ impl std::fmt::Display for TimeLoad {
         }
         Ok(())
     }
+}
+
+pub fn read_bad_datetimes(fin: PathBuf) -> Vec<NaiveDateTime> {
+    let file = File::open(fin).unwrap();
+    let buf = BufReader::new(file);
+    let mut bad_datetimes: Vec<NaiveDateTime>  = Vec::new();
+    for l in buf.lines() {
+        let l_unwrap = match l {
+            Ok(l_ok) => l_ok,
+            Err(l_err) => {
+                println!("Err, could not read/unwrap line {}", l_err);
+                continue;
+            }
+        };
+        bad_datetimes.push(NaiveDateTime::parse_from_str(&l_unwrap, DT_FORMAT).unwrap());
+    }
+    return bad_datetimes
 }
 
 pub fn min_and_max<'a, I, T>(mut s: I) -> (T, T)
@@ -318,3 +358,4 @@ pub fn mavg(v: &[f64], w: &[f64], max_missing_v: usize, max_missing_wpct: f64) -
     }
     vout
 }
+
