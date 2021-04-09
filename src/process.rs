@@ -3,19 +3,22 @@ use clap::{App, Arg};
 use std::path::PathBuf;
 
 /// Takes the CLI arguments to set the processing parameters.
-pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64, f64, f64, Option<PathBuf>) {
+pub fn parse_cli() -> (
+    PathBuf,
+    PathBuf,
+    usize,
+    usize,
+    f64,
+    f64,
+    f64,
+    Option<PathBuf>,
+) {
     let arg_csvin = Arg::with_name("input_csvfile")
         .help("name for the csv file")
         .short("f")
         .long("csvfile")
         .takes_value(true)
         .required(true);
-    let arg_bad_datetimes = Arg::with_name("input_bad_datetimes")
-        .help("name of the file with bad_datetimes to skip")
-        .short("b")
-        .long("bad_datetimes")
-        .takes_value(true)
-        .required(false);
     let arg_csvout = Arg::with_name("output_csvfile")
         .help("name of the output csv file")
         .short("o")
@@ -49,19 +52,24 @@ pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64, f64, f64, Option<Pat
         .long("min_load")
         .takes_value(true)
         .default_value("13000");
-
+    let arg_bad_datetimes = Arg::with_name("input_bad_datetimes")
+        .help("name of the file with bad_datetimes to skip")
+        .short("b")
+        .long("bad_datetimes")
+        .takes_value(true)
+        .required(false);
     let cli_args = App::new("smooth the weight time series")
         .version(VERSION.unwrap_or("unknown"))
         .author("Luca Peruzzo")
         .about("cli to smooth the weight time series")
         .arg(arg_csvin)
-        .arg(arg_bad_datetimes)
         .arg(arg_csvout)
         .arg(arg_side)
         .arg(arg_mavg_values)
         .arg(arg_mavg_weight)
         .arg(arg_max_load)
         .arg(arg_min_load)
+        .arg(arg_bad_datetimes)
         .get_matches();
 
     let csvin = PathBuf::from(cli_args.value_of("input_csvfile").unwrap());
@@ -69,7 +77,6 @@ pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64, f64, f64, Option<Pat
         Some(p) => PathBuf::from(p),
         None => PathBuf::from(csvin.to_str().unwrap().replace(".csv", "_processed.csv")),
     };
-    let bad_datetimes: Option<PathBuf> = cli_args.value_of("input_bad_datetimes").map(|f| PathBuf::from(f));
     let side = cli_args
         .value_of("side_length")
         .unwrap_or_default()
@@ -95,6 +102,9 @@ pub fn parse_cli() -> (PathBuf, PathBuf, usize, usize, f64, f64, f64, Option<Pat
         .unwrap_or_default()
         .parse::<f64>()
         .unwrap();
+    let bad_datetimes: Option<PathBuf> = cli_args
+        .value_of("input_bad_datetimes")
+        .map(|f| PathBuf::from(f));
     return (
         csvin,
         csvout,

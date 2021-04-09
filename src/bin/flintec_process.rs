@@ -1,8 +1,8 @@
 use flintec_lpp::make_window;
 use flintec_lpp::mavg;
 use flintec_lpp::process::parse_cli;
-use flintec_lpp::TimeLoad;
 use flintec_lpp::read_bad_datetimes;
+use flintec_lpp::TimeLoad;
 
 fn main() {
     let (
@@ -27,7 +27,7 @@ fn main() {
         Some(f) => {
             let vec_bad_dateimes = read_bad_datetimes(f);
             tw.rm_datetime(vec_bad_dateimes);
-        },
+        }
         None => (),
     }
 

@@ -145,7 +145,10 @@ fn main() {
 
         // recover datetime
         while dtr_next <= Local::now() {
-            println!("skipping next reading at {} because it has already passed", dtr_next_str);
+            println!(
+                "skipping next reading at {} because it has already passed",
+                dtr_next_str
+            );
             match write!(&mut csvfile, "{},{}\n", dtr_next_str, ERROR_STR_SKIPPED) {
                 Ok(_) => {
                     println!(

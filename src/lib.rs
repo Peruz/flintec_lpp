@@ -226,7 +226,7 @@ impl TimeLoad {
                 Some(i) => {
                     println!("found and removed {} at index {}", bdt, i);
                     bad_indexes.push(i);
-                },
+                }
                 None => println!("{} not found", bdt),
             }
         }
@@ -250,7 +250,7 @@ impl std::fmt::Display for TimeLoad {
 pub fn read_bad_datetimes(fin: PathBuf) -> Vec<NaiveDateTime> {
     let file = File::open(fin).unwrap();
     let buf = BufReader::new(file);
-    let mut bad_datetimes: Vec<NaiveDateTime>  = Vec::new();
+    let mut bad_datetimes: Vec<NaiveDateTime> = Vec::new();
     for l in buf.lines() {
         let l_unwrap = match l {
             Ok(l_ok) => l_ok,
@@ -261,7 +261,7 @@ pub fn read_bad_datetimes(fin: PathBuf) -> Vec<NaiveDateTime> {
         };
         bad_datetimes.push(NaiveDateTime::parse_from_str(&l_unwrap, DT_FORMAT).unwrap());
     }
-    return bad_datetimes
+    return bad_datetimes;
 }
 
 pub fn min_and_max<'a, I, T>(mut s: I) -> (T, T)
@@ -358,4 +358,3 @@ pub fn mavg(v: &[f64], w: &[f64], max_missing_v: usize, max_missing_wpct: f64) -
     }
     vout
 }
-
