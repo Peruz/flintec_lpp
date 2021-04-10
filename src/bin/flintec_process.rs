@@ -44,7 +44,7 @@ fn main() {
     ftw.replacenan_invalid(999994.);
     ftw.check_range(min_load, max_load);
     if side != 0 {
-        let mavg_window = make_window(1.5, 1., side);
+        let mavg_window = make_window(1., 1., side);
         let smooth = mavg(
             &ftw.load[..],
             &mavg_window,

@@ -181,7 +181,8 @@ impl TimeLoad {
         chart
             .configure_mesh()
             .light_line_style(&TRANSPARENT)
-            .bold_line_style(RGBColor(150, 150, 150).stroke_width(2))
+            .bold_line_style(RGBColor(100, 100, 100).stroke_width(2))
+            .light_line_style(RGBColor(200, 200, 200).stroke_width(1))
             .set_all_tick_mark_size(2)
             .label_style(("sans-serif", 24))
             .y_desc("load [kg]")
