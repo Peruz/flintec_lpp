@@ -1,3 +1,4 @@
+use chrono::prelude::*;
 use super::VERSION;
 use clap::{App, Arg};
 use std::path::PathBuf;
@@ -12,36 +13,37 @@ pub fn parse_cli() -> (
     f64,
     f64,
     Option<PathBuf>,
+    Option<(NaiveTime, NaiveTime)>,
 ) {
-    let arg_csvin = Arg::with_name("input_csvfile")
-        .help("name for the csv file")
+    let arg_in_raw_data = Arg::with_name("in_raw_data")
+        .help("name for the input csv file with the data to process")
         .short("f")
-        .long("csvfile")
+        .long("inrawdata")
         .takes_value(true)
         .required(true);
-    let arg_csvout = Arg::with_name("output_csvfile")
-        .help("name of the output csv file")
+    let arg_out_proc_data = Arg::with_name("out_proc_data")
+        .help("name for the output csv file with processed data")
         .short("o")
-        .long("csvfile")
+        .long("outprocdata")
         .takes_value(true);
-    let arg_side = Arg::with_name("side_length")
+    let arg_side = Arg::with_name("mvavg_side")
         .help("number of data points on each side for the moving average window")
         .short("s")
         .long("side")
         .takes_value(true)
-        .default_value("60");
+        .default_value("180");
     let arg_mavg_values = Arg::with_name("mavg_values")
-        .help("maximum missing percentage weight for the moving average")
+        .help("maximum missing number of values for the moving average")
         .short("n")
-        .long("max_missing_values")
+        .long("mvavg_max_missing_values")
         .takes_value(true)
-        .default_value("60");
+        .default_value("10000");
     let arg_mavg_weight = Arg::with_name("mavg_weight")
-        .help("maximum number of missing weights for the moving average")
+        .help("maximum percentage of missing weight for the moving average")
         .short("w")
-        .long("max_missing_weight")
+        .long("mvavg_max_missing_weight")
         .takes_value(true)
-        .default_value("50");
+        .default_value("80");
     let arg_max_load = Arg::with_name("max_load")
         .help("maximum accepted load value")
         .long("max_load")
@@ -52,33 +54,41 @@ pub fn parse_cli() -> (
         .long("min_load")
         .takes_value(true)
         .default_value("13000");
-    let arg_bad_datetimes = Arg::with_name("input_bad_datetimes")
-        .help("name of the file with bad_datetimes to skip")
+    let arg_bad_datetimes = Arg::with_name("bad_datetimes")
+        .help("name of the file with bad datetimes to be removed")
         .short("b")
         .long("bad_datetimes")
+        .takes_value(true)
+        .required(false);
+    let arg_bad_time_interval = Arg::with_name("bad_time_interval")
+        .help("daily time interval to be removed")
+        .short("t")
+        .multiple(true)
+        .long("bad_time_interval")
         .takes_value(true)
         .required(false);
     let cli_args = App::new("smooth the weight time series")
         .version(VERSION.unwrap_or("unknown"))
         .author("Luca Peruzzo")
         .about("cli to smooth the weight time series")
-        .arg(arg_csvin)
-        .arg(arg_csvout)
+        .arg(arg_in_raw_data)
+        .arg(arg_out_proc_data)
         .arg(arg_side)
         .arg(arg_mavg_values)
         .arg(arg_mavg_weight)
         .arg(arg_max_load)
         .arg(arg_min_load)
         .arg(arg_bad_datetimes)
+        .arg(arg_bad_time_interval)
         .get_matches();
 
-    let csvin = PathBuf::from(cli_args.value_of("input_csvfile").unwrap());
-    let csvout = match cli_args.value_of("output_csvfile") {
+    let csvin = PathBuf::from(cli_args.value_of("in_raw_data").unwrap());
+    let csvout = match cli_args.value_of("out_proc_data") {
         Some(p) => PathBuf::from(p),
         None => PathBuf::from(csvin.to_str().unwrap().replace(".csv", "_processed.csv")),
     };
     let side = cli_args
-        .value_of("side_length")
+        .value_of("mvavg_side")
         .unwrap_or_default()
         .parse::<usize>()
         .unwrap();
@@ -103,8 +113,16 @@ pub fn parse_cli() -> (
         .parse::<f64>()
         .unwrap();
     let bad_datetimes: Option<PathBuf> = cli_args
-        .value_of("input_bad_datetimes")
+        .value_of("bad_datetimes")
         .map(|f| PathBuf::from(f));
+    let bad_time_interval: Option<(NaiveTime, NaiveTime)> = match cli_args.values_of("bad_time_interval") {
+        Some(mut ti) => {
+            let time_init = NaiveTime::parse_from_str(ti.next().unwrap(), "%H:%M").unwrap();
+            let time_stop = NaiveTime::parse_from_str(ti.next().unwrap(), "%H:%M").unwrap();
+            Some((time_init, time_stop))
+        },
+        None => None,
+    };
     return (
         csvin,
         csvout,
@@ -114,5 +132,6 @@ pub fn parse_cli() -> (
         max_load,
         min_load,
         bad_datetimes,
+        bad_time_interval,
     );
 }

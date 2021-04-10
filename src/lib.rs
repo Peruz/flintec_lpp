@@ -334,7 +334,7 @@ pub fn mavg(v: &[f64], w: &[f64], max_missing_v: usize, max_missing_wpct: f64) -
     );
     let side: i32 = (len_w - 1) / 2;
     let sum_all_w: f64 = w.iter().sum();
-    let max_missing_w: f64 = sum_all_w / 100. * (100. - max_missing_wpct);
+    let max_missing_w: f64 = sum_all_w / 100. * max_missing_wpct;
     let mut vout: Vec<f64> = Vec::with_capacity(len_v as usize);
     for i in 0..len_v {
         let mut missing_v = 0;
