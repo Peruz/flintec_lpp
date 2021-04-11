@@ -82,8 +82,7 @@ impl TimeLoad {
     /// Fill the datetime gaps with NAN to have continuous datetime.
     /// Take a reference to the read TimeLoad
     /// and return a new continuous TimeLoad.
-    /// Use the minimum time interval in the data
-    /// to determine the desired time step for the output.
+    /// Assume the first interval can be used as minimum interval.
     pub fn fillnan_missing_datetime(&self) -> TimeLoad {
         let mut timeload = TimeLoad::new(self.time.len());
         let datetime_first = self.time[0];
@@ -114,6 +113,8 @@ impl TimeLoad {
     /// Take a reference to the read TimeLoad
     /// and return a new continuous TimeLoad.
     /// In fact, build a continuous datetime Vec and then match it with the load Vec?
+    /// Use the minimum time interval in the data
+    /// to determine the desired time step for the output.
     pub fn fillnan_missing_datetime_robust(&self) -> TimeLoad {
         let min_delta = self.time.windows(2).map(|w| w[1] - w[0]).min().unwrap();
         let mut timeload = TimeLoad::new(self.time.len());
