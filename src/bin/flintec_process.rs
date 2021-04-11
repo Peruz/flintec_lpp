@@ -40,9 +40,12 @@ fn main() {
         None => (),
     }
 
-    let mut ftw = tw.fillnan_missing_datetime();
-    ftw.replacenan_invalid(999994.);
-    ftw.check_range(min_load, max_load);
+    let mut ftw = tw.fillnan_missing_datetime_robust();
+
+    ftw.replacenan_invalid_with_nan(999994.);
+
+    ftw.set_outliers_to_nan(min_load, max_load);
+
     if side != 0 {
         let mavg_window = make_window(1., 1., side);
         let smooth = mavg(
