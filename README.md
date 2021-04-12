@@ -1,4 +1,4 @@
-# flintec_lpp (log - process - plot)
+# flintec_lpp (log - process - plot) 🦀
 This crate compiles the following three binaries for logging, preprocessing, and plotting load time series.
 
 ### 1 flintec_log
@@ -23,7 +23,8 @@ Note, throughout the crate, load is used for the load cells data, while weight i
 ### 3 flintec_plot
 CLI app to plot the load time series saved by flintec_log as a svg file.
 
-<img src="https://github.com/Peruz/flintec_lpp/blob/master/irrigation_processed.svg"></img>
+<img src="https://github.com/Peruz/flintec_lpp/blob/master/irrigation_processed.png"></img>
+![Example](https://i.ibb.co/zRm7fsW/theme30avril2007.png)
 
 Documentation: [rust_crate](https://crates.io/crates/flintec_lpp)
 
