@@ -9,19 +9,21 @@ Valid hours intervals are 1, 2, 3, 6, 12, and 24 hour(s).
 
 ### 2 flintec_process
 This CLI app processes the load time series with the following steps:
-1. Read the logged load time series, replacing possible logging or parsing errors with NAN.
-2. Optionally, set outliers to NAN (based on a user-defined range).
-3. Fill the datatime gaps with NAN to have a continuous time series.
-4. Now that all invalid or missing load values are set to NAN, apply a weighted moving average to fill and smooth the load time series.
+1. Read and parse the logged load time series.
+2. Make the time series continuous using the minimum time interval found in the data.
+3. Optionally, replace logging errors with NAN.
+4. Optionally, replace given datetimes from file with NAN (e.g., values disturbed by maintenance).
+5. Optionally, replace a given daily interval with NAN (e.g., daily temperature effects).
+6. Optionally, use a weighted moving average to smooth the time series (e.g., wind and temperature) and fill the NAN values.
 It uses a moving average with linear weights between the user-defined central weight (typically the max weight) and the side weight (typically the minimum weight).
 The width of the window can be adjusted by specifying the number of data points on each side.
-Constraints can be set to define when the missing information (number of load values or their cumulative associated weight) is too large to fill the NAN values.
-5. The CLI app saves a new csv file compatible with flintec_plot.
-
-Note, throughout the crate, load is used for the load cells data, while weight is used for the moving average.
+Constraints can be set to define when the missing information is too large to fill the NAN values (number of load values or their cumulative associated weight).
+8. The CLI app saves a new csv file compatible with flintec_plot.
 
 ### 3 flintec_plot
-CLI app to plot the load time series saved by flintec_log as a svg file.
+CLI app to plot the load time series saved by flintec_log as a svg file, automatically adjust the datetime format.
+
+Note, throughout the crate, load is used for the load cells data, while weight is used for the moving average.
 
 <p align="center"><img src="irrigation_processed.png"></p>
 
