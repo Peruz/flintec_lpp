@@ -79,6 +79,23 @@ impl TimeLoad {
         timeload
     }
 
+    pub fn is_ordered(&self) {
+        self.time.windows(2).for_each(|w| assert!(w[1] > w[0]));
+    }
+
+    pub fn is_ordered_and_continuous(&self) {
+        self.time
+            .windows(2)
+            .map(|w| {
+                assert!(w[1] > w[0], "time series is not ordered: {} < {}", w[1], w[0]);
+                w[1] - w[0]
+            })
+            .reduce(|wp, wn| {
+                assert_eq!(wp, wn, "time serires is not continuous");
+                wn
+            });
+    }
+
     /// Fill the datetime gaps with NAN to have continuous datetime.
     /// Take a reference to the read TimeLoad
     /// and return a new continuous TimeLoad.
@@ -114,15 +131,21 @@ impl TimeLoad {
     }
 
     /// Replace all values measured within the time interval with nan.
-    pub fn replace_bad_time_interval_with_nan(&mut self, time_init: NaiveTime, time_stop: NaiveTime) {
+    pub fn replace_bad_time_interval_with_nan(
+        &mut self,
+        time_init: NaiveTime,
+        time_stop: NaiveTime,
+    ) {
         println!("intial len {}", self.time.len());
-        self.time.iter().zip(self.load.iter_mut()).for_each(|(t, l)| {
-            if (t.time() > time_init) & (t.time() < time_stop) {
-                *l = f64::NAN;
-            }
-        });
+        self.time
+            .iter()
+            .zip(self.load.iter_mut())
+            .for_each(|(t, l)| {
+                if (t.time() > time_init) & (t.time() < time_stop) {
+                    *l = f64::NAN;
+                }
+            });
     }
-
 
     /// Set to NAN all the load values that are out of the expected range.
     pub fn replace_outliers_with_nan(&mut self, max_load: f64, min_load: f64) {
@@ -137,7 +160,6 @@ impl TimeLoad {
         });
     }
 
-
     /// Consider all the values > max_value as invalid and replace them with NAN.
     /// These high values are used for the errors.
     pub fn replace_errors_with_nan(&mut self, max_value: f64) {
@@ -148,7 +170,6 @@ impl TimeLoad {
             }
         });
     }
-
 
     /// Write the datetime and load columns as a csv at the given path.
     pub fn to_csv(self, fout: PathBuf) {
@@ -217,9 +238,6 @@ impl TimeLoad {
         }
         Ok(())
     }
-
-
-
 }
 
 impl std::fmt::Display for TimeLoad {

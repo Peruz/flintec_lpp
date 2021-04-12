@@ -24,7 +24,11 @@ fn main() {
     );
     let tw = TimeLoad::from_csv(csvin);
 
+    tw.is_ordered();
+
     let mut ftw = tw.fill_missing_with_nan();
+
+    ftw.is_ordered_and_continuous();
 
     if bad_datetimes.is_some() {
         let vec_bad_dateimes = read_bad_datetimes(bad_datetimes.unwrap());
