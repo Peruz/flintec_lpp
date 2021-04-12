@@ -37,7 +37,7 @@ fn main() {
 
     if bad_time_interval.is_some() {
         let t = bad_time_interval.unwrap();
-        println!("removeing times between {} and {}", t.0, t.1);
+        println!("removing times between {} and {}", t.0, t.1);
         ftw.replace_bad_time_interval_with_nan(t.0, t.1);
     }
 

@@ -91,7 +91,7 @@ impl TimeLoad {
                 w[1] - w[0]
             })
             .reduce(|wp, wn| {
-                assert_eq!(wp, wn, "time serires is not continuous");
+                assert_eq!(wp, wn, "time series is not continuous");
                 wn
             });
     }
@@ -136,7 +136,7 @@ impl TimeLoad {
         time_init: NaiveTime,
         time_stop: NaiveTime,
     ) {
-        println!("intial len {}", self.time.len());
+        println!("initial length {}", self.time.len());
         self.time
             .iter()
             .zip(self.load.iter_mut())
