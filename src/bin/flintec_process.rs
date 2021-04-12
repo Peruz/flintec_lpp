@@ -22,29 +22,24 @@ fn main() {
         csvin.to_str().unwrap(),
         csvout.to_str().unwrap()
     );
-    let mut tw = TimeLoad::from_csv(csvin);
+    let tw = TimeLoad::from_csv(csvin);
 
-    match bad_datetimes {
-        Some(f) => {
-            let vec_bad_dateimes = read_bad_datetimes(f);
-            tw.rm_datetime(vec_bad_dateimes);
-        }
-        None => (),
+    let mut ftw = tw.fill_missing_with_nan();
+
+    if bad_datetimes.is_some() {
+        let vec_bad_dateimes = read_bad_datetimes(bad_datetimes.unwrap());
+        ftw.replace_bad_datetimes_with_nan(vec_bad_dateimes);
     }
 
-    match bad_time_interval {
-        Some(t) => {
-            println!("removeing times between {} and {}", t.0, t.1);
-            tw.rm_timeinterval(t.0, t.1);
-        },
-        None => (),
+    if bad_time_interval.is_some() {
+        let t = bad_time_interval.unwrap();
+        println!("removeing times between {} and {}", t.0, t.1);
+        ftw.replace_bad_time_interval_with_nan(t.0, t.1);
     }
 
-    let mut ftw = tw.fillnan_missing_datetime_robust();
+    ftw.replace_errors_with_nan(999994.);
 
-    ftw.replacenan_invalid_with_nan(999994.);
-
-    ftw.set_outliers_to_nan(min_load, max_load);
+    ftw.replace_outliers_with_nan(min_load, max_load);
 
     if side != 0 {
         let mavg_window = make_window(1., 1., side);

@@ -1,5 +1,5 @@
-use chrono::prelude::*;
 use super::VERSION;
+use chrono::prelude::*;
 use clap::{App, Arg};
 use std::path::PathBuf;
 
@@ -112,17 +112,17 @@ pub fn parse_cli() -> (
         .unwrap_or_default()
         .parse::<f64>()
         .unwrap();
-    let bad_datetimes: Option<PathBuf> = cli_args
-        .value_of("bad_datetimes")
-        .map(|f| PathBuf::from(f));
-    let bad_time_interval: Option<(NaiveTime, NaiveTime)> = match cli_args.values_of("bad_time_interval") {
-        Some(mut ti) => {
-            let time_init = NaiveTime::parse_from_str(ti.next().unwrap(), "%H:%M").unwrap();
-            let time_stop = NaiveTime::parse_from_str(ti.next().unwrap(), "%H:%M").unwrap();
-            Some((time_init, time_stop))
-        },
-        None => None,
-    };
+    let bad_datetimes: Option<PathBuf> =
+        cli_args.value_of("bad_datetimes").map(|f| PathBuf::from(f));
+    let bad_time_interval: Option<(NaiveTime, NaiveTime)> =
+        match cli_args.values_of("bad_time_interval") {
+            Some(mut ti) => {
+                let time_init = NaiveTime::parse_from_str(ti.next().unwrap(), "%H:%M").unwrap();
+                let time_stop = NaiveTime::parse_from_str(ti.next().unwrap(), "%H:%M").unwrap();
+                Some((time_init, time_stop))
+            }
+            None => None,
+        };
     return (
         csvin,
         csvout,

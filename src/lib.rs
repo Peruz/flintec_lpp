@@ -82,40 +82,10 @@ impl TimeLoad {
     /// Fill the datetime gaps with NAN to have continuous datetime.
     /// Take a reference to the read TimeLoad
     /// and return a new continuous TimeLoad.
-    /// Assume the first interval can be used as minimum interval.
-    pub fn fillnan_missing_datetime(&self) -> TimeLoad {
-        let mut timeload = TimeLoad::new(self.time.len());
-        let datetime_first = self.time[0];
-        let datetime_second = self.time[1];
-        let initial_delta_datetime = datetime_second - datetime_first;
-        let mut dt_previous = datetime_first - initial_delta_datetime;
-        for (&dt, &w) in self.time.iter().zip(self.load.iter()) {
-            let current_delta_datetime = dt - dt_previous;
-            if current_delta_datetime == initial_delta_datetime {
-                timeload.time.push(dt);
-                timeload.load.push(w);
-            } else if current_delta_datetime > initial_delta_datetime {
-                let mut expected_datetime = dt_previous + initial_delta_datetime;
-                while expected_datetime < dt {
-                    timeload.time.push(expected_datetime);
-                    timeload.load.push(f64::NAN);
-                    expected_datetime += initial_delta_datetime;
-                }
-                timeload.time.push(dt);
-                timeload.load.push(w);
-            }
-            dt_previous = dt;
-        }
-        timeload
-    }
-
-    /// Fill the datetime gaps with NAN to have continuous datetime.
-    /// Take a reference to the read TimeLoad
-    /// and return a new continuous TimeLoad.
     /// In fact, build a continuous datetime Vec and then match it with the load Vec?
     /// Use the minimum time interval in the data
     /// to determine the desired time step for the output.
-    pub fn fillnan_missing_datetime_robust(&self) -> TimeLoad {
+    pub fn fill_missing_with_nan(&self) -> TimeLoad {
         let min_delta = self.time.windows(2).map(|w| w[1] - w[0]).min().unwrap();
         let mut timeload = TimeLoad::new(self.time.len());
         for (dt, w) in self.time.windows(2).zip(self.load.iter()) {
@@ -133,45 +103,52 @@ impl TimeLoad {
         timeload
     }
 
-
-    /// Drop all the datetime with NAN load, leaving a datetime gap.
-    /// Take a reference and returns a new TimeLoad.
-    pub fn removenan(&self) -> TimeLoad {
-        let mut timeload = TimeLoad::new(self.time.len());
-        for (&dt, &w) in self.time.iter().zip(self.load.iter()) {
-            if w.is_nan() {
-                continue;
-            } else {
-                timeload.time.push(dt);
-                timeload.load.push(w);
-            }
-        }
-        timeload
-    }
-
-    /// Consider all the values > max_value as invalid and replace them with NAN.
-    /// Take a mutable reference to modify the TimeLoad in-place.
-    pub fn replacenan_invalid_with_nan(&mut self, max_value: f64) {
-        for w in self.load.iter_mut() {
-            if *w > max_value {
-                println!("found invalid value: {}", w);
-                *w = f64::NAN;
+    /// Replace all values measured at the bad datetimes  nan.
+    pub fn replace_bad_datetimes_with_nan(&mut self, bad_datetimes: Vec<NaiveDateTime>) {
+        for bdt in bad_datetimes.into_iter() {
+            match self.time.iter().position(|d| *d == bdt) {
+                Some(i) => self.load[i] = f64::NAN,
+                None => println!("could not find bad datetime {}", bdt),
             }
         }
     }
 
-    /// Set to NAN all the load values that are out of range.
-    pub fn set_outliers_to_nan(&mut self, max_load: f64, min_load: f64) {
-        for w in self.load.iter_mut() {
-            if (*w > max_load) | (*w < min_load) {
+    /// Replace all values measured within the time interval with nan.
+    pub fn replace_bad_time_interval_with_nan(&mut self, time_init: NaiveTime, time_stop: NaiveTime) {
+        println!("intial len {}", self.time.len());
+        self.time.iter().zip(self.load.iter_mut()).for_each(|(t, l)| {
+            if (t.time() > time_init) & (t.time() < time_stop) {
+                *l = f64::NAN;
+            }
+        });
+    }
+
+
+    /// Set to NAN all the load values that are out of the expected range.
+    pub fn replace_outliers_with_nan(&mut self, max_load: f64, min_load: f64) {
+        self.load.iter_mut().for_each(|l| {
+            if (*l > max_load) | (*l < min_load) {
                 println!(
                     "setting to NAN value out of range (min: {}, max {}): {}",
-                    min_load, max_load, w
+                    min_load, max_load, l
                 );
-                *w = f64::NAN;
+                *l = f64::NAN;
             }
-        }
+        });
     }
+
+
+    /// Consider all the values > max_value as invalid and replace them with NAN.
+    /// These high values are used for the errors.
+    pub fn replace_errors_with_nan(&mut self, max_value: f64) {
+        self.load.iter_mut().for_each(|l| {
+            if *l > max_value {
+                println!("found invalid value: {}", l);
+                *l = f64::NAN;
+            }
+        });
+    }
+
 
     /// Write the datetime and load columns as a csv at the given path.
     pub fn to_csv(self, fout: PathBuf) {
@@ -241,47 +218,8 @@ impl TimeLoad {
         Ok(())
     }
 
-    /// Remove bad-unwanted datetime from the time series.
-    /// Do not assume all bad_datetimes are present
-    /// or in the proper order (sort before reverse).
-    /// As we expect the vector to be already sorted,
-    /// sort() is the best algorithm, faster than sort_unstable(), see doc.
-    /// Assuming the homogeneity and continuity of the datetime Vec,
-    /// better algorithms are available
-    /// e.g., datetime from the first or last element / time interval
-    /// but the generality seems more relevant here.
-    pub fn rm_datetime(&mut self, bad_datetimes: Vec<NaiveDateTime>) {
-        let len_bad_datetimes = bad_datetimes.len();
-        let mut bad_indexes: Vec<usize> = Vec::with_capacity(len_bad_datetimes);
-        for bdt in bad_datetimes.into_iter() {
-            let index_bad = self.time.iter().position(|d| *d == bdt);
-            match index_bad {
-                Some(i) => {
-                    println!("found and removed {} at index {}", bdt, i);
-                    bad_indexes.push(i);
-                }
-                None => println!("{} not found", bdt),
-            }
-        }
-        bad_indexes.sort();
-        for bad_index in bad_indexes.into_iter().rev() {
-            self.time.remove(bad_index);
-            self.load.remove(bad_index);
-        }
-    }
 
-    pub fn rm_timeinterval(&mut self, time_init: NaiveTime, time_stop: NaiveTime) {
-        println!("intial len {}", self.time.len());
-        let (keep_datetime, keep_load): (Vec<NaiveDateTime>, Vec<f64>) = self
-            .time
-            .iter()
-            .zip(self.load.iter())
-            .filter(|(&t, _)| (t.time() < time_init) | (t.time() > time_stop))
-            .unzip();
-        self.time = keep_datetime;
-        self.load = keep_load;
-        println!("final len {}", self.time.len());
-    }
+
 }
 
 impl std::fmt::Display for TimeLoad {
