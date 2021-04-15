@@ -136,7 +136,6 @@ impl TimeLoad {
         time_init: NaiveTime,
         time_stop: NaiveTime,
     ) {
-        println!("initial length {}", self.time.len());
         self.time
             .iter()
             .zip(self.load.iter_mut())
@@ -148,7 +147,7 @@ impl TimeLoad {
     }
 
     /// Set to NAN all the load values that are out of the expected range.
-    pub fn replace_outliers_with_nan(&mut self, max_load: f64, min_load: f64) {
+    pub fn replace_outliers_with_nan(&mut self, min_load: f64, max_load: f64) {
         self.load.iter_mut().for_each(|l| {
             if (*l > max_load) | (*l < min_load) {
                 println!(
@@ -250,7 +249,7 @@ impl std::fmt::Display for TimeLoad {
     }
 }
 
-pub fn read_bad_datetimes(fin: PathBuf) -> Vec<NaiveDateTime> {
+pub fn read_bad_datetimes(fin: &PathBuf) -> Vec<NaiveDateTime> {
     let file = File::open(fin).unwrap();
     let buf = BufReader::new(file);
     let mut bad_datetimes: Vec<NaiveDateTime> = Vec::new();

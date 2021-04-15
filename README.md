@@ -29,6 +29,8 @@ Note, throughout the crate, load is used for the load cells data, while weight i
 
 Documentation: [rust_crate](https://crates.io/crates/flintec_lpp)
 
+The CLI apps are written in the [Rust](https://www.rust-lang.org) programming language.
+
 # Notes on the DAD141.1
 
 ### General

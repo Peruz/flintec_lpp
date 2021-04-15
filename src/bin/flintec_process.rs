@@ -17,36 +17,40 @@ fn main() {
         bad_time_interval,
     ) = parse_cli();
 
-    println!(
-        "read data from {} and save to {}",
-        csvin.to_str().unwrap(),
-        csvout.to_str().unwrap()
-    );
+    println!("> read data from {}", csvin.to_str().unwrap());
     let tw = TimeLoad::from_csv(csvin);
 
     tw.is_ordered();
 
+    println!("> fill missing values with nan");
     let mut ftw = tw.fill_missing_with_nan();
 
+    println!("> check that the time series is continuous and ordered");
     ftw.is_ordered_and_continuous();
 
     if bad_datetimes.is_some() {
-        let vec_bad_dateimes = read_bad_datetimes(bad_datetimes.unwrap());
+        let bdt = bad_datetimes.unwrap();
+        let vec_bad_dateimes = read_bad_datetimes(&bdt);
+        println!("> found {} bad datetimes in {}, set them to nan", vec_bad_dateimes.len(), bdt.to_str().unwrap());
         ftw.replace_bad_datetimes_with_nan(vec_bad_dateimes);
     }
 
     if bad_time_interval.is_some() {
         let t = bad_time_interval.unwrap();
-        println!("removing times between {} and {}", t.0, t.1);
+        println!("> consider daily times between {} and {} as invalid, set them to nan", t.0, t.1);
         ftw.replace_bad_time_interval_with_nan(t.0, t.1);
     }
 
-    ftw.replace_errors_with_nan(999994.);
+    let largest_valid = 999994.;
+    println!("> consider all values larger than {} as error codes, set them to nan", largest_valid);
+    ftw.replace_errors_with_nan(largest_valid);
 
+    println!("> consider outliers values below {} or above {}, set them to nan", min_load, max_load);
     ftw.replace_outliers_with_nan(min_load, max_load);
 
+    println!("> apply moving average to smooth and fill nan");
     if side != 0 {
-        let mavg_window = make_window(1., 1., side);
+        let mavg_window = make_window(5., 1., side);
         let smooth = mavg(
             &ftw.load[..],
             &mavg_window,
@@ -55,5 +59,7 @@ fn main() {
         );
         ftw.load = smooth;
     }
+
+    println!("> save processed data to {}", csvout.to_str().unwrap());
     ftw.to_csv(csvout);
 }

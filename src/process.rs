@@ -129,8 +129,8 @@ pub fn parse_cli() -> (
         side,
         mavg_max_missing_values,
         mavg_max_missing_pct_weight,
-        max_load,
         min_load,
+        max_load,
         bad_datetimes,
         bad_time_interval,
     );
