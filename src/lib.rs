@@ -198,7 +198,7 @@ impl TimeLoad {
         let root = SVGBackend::new(&fout, (1600, 800)).into_drawing_area();
         root.fill(&WHITE)?;
         let mut chart = ChartBuilder::on(&root)
-            .margin(20)
+            .margin(50)
             .x_label_area_size(60)
             .y_label_area_size(100)
             .build_cartesian_2d(xminlocal..xmaxlocal, ymin..ymax)?;
