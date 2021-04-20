@@ -185,9 +185,13 @@ impl TimeLoad {
     pub fn plot_datetime(self, fout: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
         let (xmindt, xmaxdt): (NaiveDateTime, NaiveDateTime) = min_and_max(self.time.iter());
         let xspan: chrono::Duration = xmaxdt - xmindt;
-        let xmargin: chrono::Duration = xspan / 20;
-        let xmindt = xmindt - xmargin;
-        let xmaxdt = xmaxdt + xmargin;
+//         xmaxdt += chrono::Duration::days(1);
+//         xmindt -= chrono::Duration::days(1);
+//         xmaxdt = xmaxdt.date().and_hms(0, 0, 0);
+//         xmindt = xmindt.date().and_hms(0, 0, 0);
+//         let xmargin: chrono::Duration = xspan / 20;
+//         let xmindt = xmindt - xmargin;
+//         let xmaxdt = xmaxdt + xmargin;
         let xminlocal = TimeZone::from_utc_datetime(&Utc, &xmindt);
         let xmaxlocal = TimeZone::from_utc_datetime(&Utc, &xmaxdt);
         let xfmt = suitable_xfmt(xspan);
@@ -199,18 +203,19 @@ impl TimeLoad {
         root.fill(&WHITE)?;
         let mut chart = ChartBuilder::on(&root)
             .margin(50)
-            .x_label_area_size(60)
-            .y_label_area_size(100)
+            .x_label_area_size(40)
+            .y_label_area_size(80)
             .build_cartesian_2d(xminlocal..xmaxlocal, ymin..ymax)?;
         chart
             .configure_mesh()
             .light_line_style(&TRANSPARENT)
-            .bold_line_style(RGBColor(100, 100, 100).stroke_width(2))
-            .light_line_style(RGBColor(200, 200, 200).stroke_width(1))
+            .bold_line_style(RGBColor(100, 100, 100).mix(0.5).stroke_width(2))
+//             .light_line_style(RGBColor(200, 200, 200).stroke_width(1))
             .set_all_tick_mark_size(2)
-            .label_style(("sans-serif", 24))
+            .label_style(("sans-serif", 20))
             .y_desc("load [kg]")
-            .x_labels(14) // max number of labels
+            .x_labels(16) // max number of x labels
+            .y_labels(25) // max number of y labels
             .x_label_formatter(&|x: &DateTime<Utc>| x.format(xfmt).to_string())
             .y_label_formatter(&|x: &f64| format!("{:5}", x))
             .x_desc(format!("datetime [{}]", xfmt.replace("%", "")))
@@ -237,6 +242,20 @@ impl TimeLoad {
         }
         Ok(())
     }
+}
+
+    /// If longer than one week, keep year, month and day, drop hours;
+    /// if not, but longer than one day, add hours.
+    /// Otherwise, shorter than one day, keep also minutes.
+pub fn suitable_xfmt(d: chrono::Duration) -> &'static str {
+    let xfmt = if d > chrono::Duration::weeks(1) {
+        "%y-%m-%d"
+    } else if d > chrono::Duration::days(1) {
+        "%m-%d %H"
+    } else {
+        "%d %H:%M"
+    };
+    return xfmt;
 }
 
 impl std::fmt::Display for TimeLoad {
@@ -283,17 +302,6 @@ where
         }
     }
     return (min.clone(), max.clone());
-}
-
-pub fn suitable_xfmt(d: chrono::Duration) -> &'static str {
-    let xfmt = if d > chrono::Duration::weeks(1) {
-        "%y-%m-%d"
-    } else if d > chrono::Duration::days(1) {
-        "%m-%d %H"
-    } else {
-        "%d %H:%M"
-    };
-    return xfmt;
 }
 
 pub fn make_window(w_central: f64, w_side: f64, side: usize) -> Vec<f64> {
