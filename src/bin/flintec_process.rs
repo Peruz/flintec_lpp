@@ -11,6 +11,8 @@ fn main() {
         side,
         mavg_max_missing_values,
         mavg_max_missing_pct_weight,
+        mavg_central_weight,
+        mavg_side_weight,
         min_load,
         max_load,
         bad_datetimes,
@@ -50,7 +52,7 @@ fn main() {
 
     println!("> apply moving average to smooth and fill nan");
     if side != 0 {
-        let mavg_window = make_window(5., 1., side);
+        let mavg_window = make_window(mavg_central_weight, mavg_side_weight, side);
         let smooth = mavg(
             &ftw.load[..],
             &mavg_window,

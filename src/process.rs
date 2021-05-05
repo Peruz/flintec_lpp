@@ -12,6 +12,8 @@ pub fn parse_cli() -> (
     f64,
     f64,
     f64,
+    f64,
+    f64,
     Option<PathBuf>,
     Option<(NaiveTime, NaiveTime)>,
 ) {
@@ -26,29 +28,41 @@ pub fn parse_cli() -> (
         .short("o")
         .long("outprocdata")
         .takes_value(true);
-    let arg_side = Arg::with_name("mvavg_side")
+    let arg_side = Arg::with_name("mavg_side")
         .help("number of data points on each side for the moving average window")
         .short("s")
-        .long("side")
+        .long("mavg_side")
         .takes_value(true)
         .default_value("180");
-    let arg_mavg_values = Arg::with_name("mavg_values")
+    let arg_mavg_max_missing_values = Arg::with_name("mavg_max_missing_values")
         .help("maximum missing number of values for the moving average")
-        .short("n")
-        .long("mvavg_max_missing_values")
+        .short("mmv")
+        .long("mavg_max_missing_values")
         .takes_value(true)
         .default_value("10000");
-    let arg_mavg_weight = Arg::with_name("mavg_weight")
+    let arg_mavg_max_missing_weight = Arg::with_name("mavg_max_missing_weight")
         .help("maximum percentage of missing weight for the moving average")
-        .short("w")
-        .long("mvavg_max_missing_weight")
+        .short("mmw")
+        .long("mavg_max_missing_weight")
         .takes_value(true)
         .default_value("80");
+    let arg_mavg_central_weight = Arg::with_name("mavg_central_weight")
+        .help("weight of the mavg central value")
+        .short("cw")
+        .long("mavg_central_weight")
+        .takes_value(true)
+        .default_value("5");
+    let arg_mavg_side_weight = Arg::with_name("mavg_side_weight")
+        .help("weight of the mavg ends")
+        .short("sw")
+        .long("mavg_side_weight")
+        .takes_value(true)
+        .default_value("1");
     let arg_max_load = Arg::with_name("max_load")
         .help("maximum accepted load value")
         .long("max_load")
         .takes_value(true)
-        .default_value("15000");
+        .default_value("17000");
     let arg_min_load = Arg::with_name("min_load")
         .help("minimum accepted load value")
         .long("min_load")
@@ -74,8 +88,10 @@ pub fn parse_cli() -> (
         .arg(arg_in_raw_data)
         .arg(arg_out_proc_data)
         .arg(arg_side)
-        .arg(arg_mavg_values)
-        .arg(arg_mavg_weight)
+        .arg(arg_mavg_max_missing_values)
+        .arg(arg_mavg_max_missing_weight)
+        .arg(arg_mavg_central_weight)
+        .arg(arg_mavg_side_weight)
         .arg(arg_max_load)
         .arg(arg_min_load)
         .arg(arg_bad_datetimes)
@@ -88,17 +104,27 @@ pub fn parse_cli() -> (
         None => PathBuf::from(csvin.to_str().unwrap().replace(".csv", "_processed.csv")),
     };
     let side = cli_args
-        .value_of("mvavg_side")
+        .value_of("mavg_side")
         .unwrap_or_default()
         .parse::<usize>()
         .unwrap();
     let mavg_max_missing_values = cli_args
-        .value_of("mavg_values")
+        .value_of("mavg_max_missing_values")
         .unwrap_or_default()
         .parse::<usize>()
         .unwrap();
-    let mavg_max_missing_pct_weight = cli_args
-        .value_of("mavg_weight")
+    let mavg_max_missing_weight = cli_args
+        .value_of("mavg_max_missing_weight")
+        .unwrap_or_default()
+        .parse::<f64>()
+        .unwrap();
+    let mavg_central_weight = cli_args
+        .value_of("mavg_central_weight")
+        .unwrap_or_default()
+        .parse::<f64>()
+        .unwrap();
+    let mavg_side_weight = cli_args
+        .value_of("mavg_side_weight")
         .unwrap_or_default()
         .parse::<f64>()
         .unwrap();
@@ -128,7 +154,9 @@ pub fn parse_cli() -> (
         csvout,
         side,
         mavg_max_missing_values,
-        mavg_max_missing_pct_weight,
+        mavg_max_missing_weight,
+        mavg_central_weight,
+        mavg_side_weight,
         min_load,
         max_load,
         bad_datetimes,
