@@ -17,7 +17,14 @@ fn main() {
     // get CLI arguments
     let (csv_name, ip, port, mut tcmd_str, minutes, delay, verbose) = parse_cli_log();
 
-    // init connection with closure that can be used to refresh the connection if needed
+    // Init connection with closure that can be used to refresh the connection if needed.
+    // The closures captures the variables in the environment where they are defined,
+    // in this case, it is defined here and it captures: socket and timeout.
+    // Then we can call the closure anywhere, without bringing around also socket and timeout.
+    // This closure takes no arguments because it only needs these environmental variables,
+    // no additional argument is required to init the connection, it while be called as closure().
+    // Arguments are added |args| when the env variables in the defining env should be combined
+    // with arguments given at calling time.
     let ipaddr: Ipv4Addr = ip.parse().expect("arg string is not a valid ip address");
     let socket = SocketAddrV4::new(ipaddr, port);
     let init_connection = || -> Result<TcpStream, Error> {
@@ -28,6 +35,7 @@ fn main() {
         connection.set_nodelay(true)?;
         Ok(connection)
     };
+    init_connection.fdfd;
     let mut connection = init_connection().expect("could not initiate the connection");
     println!("connected to socket {}", socket.to_string());
 
