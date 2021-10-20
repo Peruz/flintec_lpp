@@ -35,7 +35,6 @@ fn main() {
         connection.set_nodelay(true)?;
         Ok(connection)
     };
-    init_connection.fdfd;
     let mut connection = init_connection().expect("could not initiate the connection");
     println!("connected to socket {}", socket.to_string());
 
