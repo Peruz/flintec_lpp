@@ -377,7 +377,13 @@ pub fn mavg(v: &[f64], w: &[f64], max_missing_v: usize, max_missing_wpct: f64) -
 mod tests {
     use super::*;
     #[test]
-    fn datetime_parsing_with_timezone() {
+    fn datetime_tests() {
+        // DateTime<FixedOffset> stores:
+        // self.datetime, which is the utc time
+        // self.offset, accessed with self.offset.fix(), which is the fixedoffset
+        //
+        // calling dt.naive_local() returns
+        // self.datetime + self.offset.fix(), which is the standard time
         let mut timezone: i32 = -8;
         timezone *= 60 * 60;
         let timezone_fixed_offset = FixedOffset::east(timezone);
@@ -386,10 +392,15 @@ mod tests {
         let dtiso = DateTime::parse_from_rfc3339(dtstr).unwrap();
         let dtfix = dtiso.with_timezone(&timezone_fixed_offset);
         println!("datetime str {} parsed as {}, fixed {}", dtstr, dtiso, dtfix);
+        let dtloc = dtfix.naive_local();
+        println!("naive local is {}", dtloc);
 
         let dtstr = "2021-11-07T01:30:00-08:00";
         let dtiso = DateTime::parse_from_rfc3339(dtstr).unwrap();
         let dtfix = dtiso.with_timezone(&timezone_fixed_offset);
+        let dtloc = dtiso.naive_local();
         println!("datetime str {} parsed as {}, fixed {}", dtstr, dtiso, dtfix);
+        let dtloc = dtfix.naive_local();
+        println!("naive local is {}", dtloc);
     }
 }
