@@ -23,6 +23,7 @@ pub const ERROR_FLT_INVALID: f64 = 999997.;
 pub const ERROR_FLT_SKIPPED: f64 = 999996.;
 pub const ERROR_FLT_PARSE: f64 = 999995.;
 
+
 /// The main struct for the load time series.
 #[derive(Debug, Clone)]
 pub struct TimeLoad {
@@ -80,7 +81,12 @@ impl TimeLoad {
     }
 
     pub fn is_ordered(&self) {
-        self.time.windows(2).for_each(|w| assert!(w[1] > w[0]));
+        // self.time.windows(2).for_each(|w| assert!(w[1] > w[0]));
+        self.time
+            .windows(2)
+            .for_each(|w|
+                assert!(w[1] > w[0], "failed at {} > {}", w[1], w[0])
+            );
     }
 
     pub fn is_ordered_and_continuous(&self) {
@@ -220,10 +226,8 @@ impl TimeLoad {
             .y_label_formatter(&|x: &f64| format!("{:5}", x))
             .x_desc(format!("datetime [{}]", xfmt.replace("%", "")))
             .draw()?;
-
         let witer = &mut self.load[..].split(|x| x.is_nan());
         let titer = &mut self.time[..].into_iter();
-
         for wchunk in witer.into_iter() {
             if wchunk.len() == 0 {
                 titer.next();
@@ -367,4 +371,25 @@ pub fn mavg(v: &[f64], w: &[f64], max_missing_v: usize, max_missing_wpct: f64) -
         vout.push(sum_ve_we / sum_we);
     }
     vout
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn datetime_parsing_with_timezone() {
+        let mut timezone: i32 = -8;
+        timezone *= 60 * 60;
+        let timezone_fixed_offset = FixedOffset::east(timezone);
+
+        let dtstr = "2021-11-07T01:30:00-07:00";
+        let dtiso = DateTime::parse_from_rfc3339(dtstr).unwrap();
+        let dtfix = dtiso.with_timezone(&timezone_fixed_offset);
+        println!("datetime str {} parsed as {}, fixed {}", dtstr, dtiso, dtfix);
+
+        let dtstr = "2021-11-07T01:30:00-08:00";
+        let dtiso = DateTime::parse_from_rfc3339(dtstr).unwrap();
+        let dtfix = dtiso.with_timezone(&timezone_fixed_offset);
+        println!("datetime str {} parsed as {}, fixed {}", dtstr, dtiso, dtfix);
+    }
 }

@@ -11,5 +11,6 @@ description = "CLI apps for logging, processing, and plotting load time series f
 
 [dependencies]
 chrono = "0.4"
+chrono-tz = {git="https://github.com/chronotope/chrono-tz.git"}
 clap = "2.33"
 plotters = "0.3"

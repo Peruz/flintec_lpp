@@ -17,7 +17,10 @@ fn main() {
         max_load,
         bad_datetimes,
         bad_time_interval,
+        timezone,
     ) = parse_cli();
+
+    println!("using timezone {}", timezone);
 
     println!("> read data from {}", csvin.to_str().unwrap());
     let tw = TimeLoad::from_csv(csvin);

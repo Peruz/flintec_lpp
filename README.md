@@ -31,6 +31,11 @@ Documentation: [rust_crate](https://crates.io/crates/flintec_lpp)
 
 The CLI apps are written in the [Rust](https://www.rust-lang.org) programming language.
 
+# Notes on Chrono
+
+The monitorning saves the data in Local time, i.e., uses daylight saving, convenient for practical reasons.  
+However, daylight saving does not make sense
+
 # Notes on the DAD141.1
 
 ### General

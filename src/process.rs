@@ -16,6 +16,7 @@ pub fn parse_cli() -> (
     f64,
     Option<PathBuf>,
     Option<(NaiveTime, NaiveTime)>,
+    i8,
 ) {
     let arg_in_raw_data = Arg::with_name("in_raw_data")
         .help("name for the input csv file with the data to process")
@@ -81,6 +82,11 @@ pub fn parse_cli() -> (
         .long("bad_time_interval")
         .takes_value(true)
         .required(false);
+    let ard_timezone = Arg::with_name("timezone")
+        .help("timezone standard time relative to UTC")
+        .long("timezone")
+        .takes_value(true)
+        .default_value("-7");
     let cli_args = App::new("smooth the weight time series")
         .version(VERSION.unwrap_or("unknown"))
         .author("Luca Peruzzo")
@@ -96,6 +102,7 @@ pub fn parse_cli() -> (
         .arg(arg_min_load)
         .arg(arg_bad_datetimes)
         .arg(arg_bad_time_interval)
+        .arg(ard_timezone)
         .get_matches();
 
     let csvin = PathBuf::from(cli_args.value_of("in_raw_data").unwrap());
@@ -149,6 +156,11 @@ pub fn parse_cli() -> (
             }
             None => None,
         };
+    let timezone = cli_args
+        .value_of("timezone")
+        .unwrap_or_default()
+        .parse::<i8>()
+        .unwrap();
     return (
         csvin,
         csvout,
@@ -161,5 +173,6 @@ pub fn parse_cli() -> (
         max_load,
         bad_datetimes,
         bad_time_interval,
+        timezone,
     );
 }
