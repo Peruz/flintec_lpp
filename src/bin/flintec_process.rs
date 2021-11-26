@@ -20,7 +20,7 @@ fn main() {
         timezone,
     ) = parse_cli();
 
-    println!("using timezone {}", timezone);
+    println!("Reading time series in RFC3339 - ISO8601 and resetting to timezone {}", timezone);
 
     println!("> read data from {}", csvin.to_str().unwrap());
     let tw = TimeLoad::from_csv(csvin);

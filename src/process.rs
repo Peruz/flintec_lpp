@@ -86,7 +86,7 @@ pub fn parse_cli() -> (
         .help("timezone standard time relative to UTC")
         .long("timezone")
         .takes_value(true)
-        .default_value("-7");
+        .default_value("-8");
     let cli_args = App::new("smooth the weight time series")
         .version(VERSION.unwrap_or("unknown"))
         .author("Luca Peruzzo")

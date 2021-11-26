@@ -9,7 +9,7 @@ pub mod process;
 
 pub const VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
 
-pub const DT_FORMAT: &str = "%Y-%m-%d %H:%M:%S";
+pub const DT_FORMAT: &str = "%Y-%m-%dT%H:%M:%S";
 
 pub const ERROR_STR_GENERAL: &str = "E+999999.";
 pub const ERROR_STR_NONE: &str = "E+999998.";
@@ -27,7 +27,7 @@ pub const ERROR_FLT_PARSE: f64 = 999995.;
 /// The main struct for the load time series.
 #[derive(Debug, Clone)]
 pub struct TimeLoad {
-    pub time: Vec<NaiveDateTime>,
+    pub time: Vec<DateTime<FixedOffset>>,
     pub load: Vec<f64>,
 }
 
@@ -35,7 +35,7 @@ impl TimeLoad {
     /// Initiate a new TimeLoad instance
     /// using the given capacity for the time and load vectors
     pub fn new(capacity: usize) -> TimeLoad {
-        let time: Vec<NaiveDateTime> = Vec::with_capacity(capacity);
+        let time: Vec<DateTime<FixedOffset>> = Vec::with_capacity(capacity);
         let load: Vec<f64> = Vec::with_capacity(capacity);
         let timeload: TimeLoad = TimeLoad { time, load };
         timeload
@@ -66,14 +66,14 @@ impl TimeLoad {
                     timeload.load.push(w);
                     timeload
                         .time
-                        .push(NaiveDateTime::parse_from_str(l_split_datetime, DT_FORMAT).unwrap());
+                        .push(DateTime::parse_from_rfc3339(l_split_datetime).unwrap());
                 }
                 _ => {
                     println!("invalid measurement found");
                     timeload.load.push(f64::NAN);
                     timeload
                         .time
-                        .push(NaiveDateTime::parse_from_str(l_split_datetime, DT_FORMAT).unwrap());
+                        .push(DateTime::parse_from_rfc3339(l_split_datetime).unwrap());
                 }
             }
         }
@@ -81,11 +81,10 @@ impl TimeLoad {
     }
 
     pub fn is_ordered(&self) {
-        // self.time.windows(2).for_each(|w| assert!(w[1] > w[0]));
         self.time
             .windows(2)
             .for_each(|w|
-                assert!(w[1] > w[0], "failed at {} > {}", w[1], w[0])
+                assert!(w[1] > w[0], "time series is not ordered: {} < {}", w[1], w[0])
             );
     }
 
@@ -127,16 +126,18 @@ impl TimeLoad {
     }
 
     /// Replace all values measured at the bad datetimes  nan.
-    pub fn replace_bad_datetimes_with_nan(&mut self, bad_datetimes: Vec<NaiveDateTime>) {
+    /// Need to be given as DateTime for correct and easier comparison.
+    pub fn replace_bad_datetimes_with_nan(&mut self, bad_datetimes: Vec<DateTime<FixedOffset>>) {
         for bdt in bad_datetimes.into_iter() {
             match self.time.iter().position(|d| *d == bdt) {
                 Some(i) => self.load[i] = f64::NAN,
-                None => println!("could not find bad datetime {}", bdt),
+                None => println!("could not find and exclude bad datetime {}", bdt),
             }
         }
     }
 
     /// Replace all values measured within the time interval with nan.
+    /// Given in standard time, fixed offset for the chosen timezone.
     pub fn replace_bad_time_interval_with_nan(
         &mut self,
         time_init: NaiveTime,
@@ -177,29 +178,23 @@ impl TimeLoad {
     }
 
     /// Write the datetime and load columns as a csv at the given path.
+    /// Use RFC3339 - ISO8601 for datetime.
     pub fn to_csv(self, fout: PathBuf) {
         let file = File::create(fout).unwrap();
         let mut buf = BufWriter::new(file);
         buf.write_all("datetime,load_kg\n".as_bytes()).unwrap();
         for (t, w) in self.time.iter().zip(self.load.iter()) {
-            buf.write_all(format!("{},{}\n", t.to_string(), w).as_bytes())
+            buf.write_all(format!("{},{}\n", t.to_rfc3339(), w).as_bytes())
                 .unwrap();
         }
     }
 
     /// Plot the load time series to svg.
     pub fn plot_datetime(self, fout: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
-        let (xmindt, xmaxdt): (NaiveDateTime, NaiveDateTime) = min_and_max(self.time.iter());
-        let xspan: chrono::Duration = xmaxdt - xmindt;
-//         xmaxdt += chrono::Duration::days(1);
-//         xmindt -= chrono::Duration::days(1);
-//         xmaxdt = xmaxdt.date().and_hms(0, 0, 0);
-//         xmindt = xmindt.date().and_hms(0, 0, 0);
-//         let xmargin: chrono::Duration = xspan / 20;
-//         let xmindt = xmindt - xmargin;
-//         let xmaxdt = xmaxdt + xmargin;
-        let xminlocal = TimeZone::from_utc_datetime(&Utc, &xmindt);
-        let xmaxlocal = TimeZone::from_utc_datetime(&Utc, &xmaxdt);
+        let (xmin, xmax): (NaiveDateTime, NaiveDateTime) = min_and_max(
+            self.time.iter().map(|dt| dt.naive_local())
+        );
+        let xspan: chrono::Duration = xmax - xmin;
         let xfmt = suitable_xfmt(xspan);
         let (ymin, ymax) = min_and_max(self.load.iter().filter(|x| !x.is_nan()));
         let yspan = (ymax - ymin) / 10f64;
@@ -211,7 +206,7 @@ impl TimeLoad {
             .margin(50)
             .x_label_area_size(40)
             .y_label_area_size(80)
-            .build_cartesian_2d(xminlocal..xmaxlocal, ymin..ymax)?;
+            .build_cartesian_2d(xmin..xmax, ymin..ymax)?;
         chart
             .configure_mesh()
             .light_line_style(&TRANSPARENT)
@@ -222,7 +217,7 @@ impl TimeLoad {
             .y_desc("load [kg]")
             .x_labels(16) // max number of x labels
             .y_labels(25) // max number of y labels
-            .x_label_formatter(&|x: &DateTime<Utc>| x.format(xfmt).to_string())
+            .x_label_formatter(&|x: &NaiveDateTime| x.format(xfmt).to_string())
             .y_label_formatter(&|x: &f64| format!("{:5}", x))
             .x_desc(format!("datetime [{}]", xfmt.replace("%", "")))
             .draw()?;
@@ -236,7 +231,7 @@ impl TimeLoad {
                 let area = AreaSeries::new(
                     titer
                         .zip(wchunk)
-                        .map(|(x, y)| (TimeZone::from_utc_datetime(&Utc, &x), *y)),
+                        .map(|(x, y)| (&x, *y)),
                     0.0,
                     &RED.mix(0.2),
                 )
@@ -266,16 +261,17 @@ impl std::fmt::Display for TimeLoad {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "datetime, load [kg]\n")?;
         for (t, w) in self.time.iter().zip(self.load.iter()) {
-            write!(f, "{},{}\n", t.to_string(), w)?
+            write!(f, "{},{}\n", t.to_rfc3339(), w)?
         }
         Ok(())
     }
 }
 
-pub fn read_bad_datetimes(fin: &PathBuf) -> Vec<NaiveDateTime> {
+/// Read bad datetimes to skip, always from RFC3339 - ISO8601 format
+pub fn read_bad_datetimes(fin: &PathBuf) -> Vec<DateTime<FixedOffset>> {
     let file = File::open(fin).unwrap();
     let buf = BufReader::new(file);
-    let mut bad_datetimes: Vec<NaiveDateTime> = Vec::new();
+    let mut bad_datetimes: Vec<DateTime<FixedOffset>> = Vec::new();
     for l in buf.lines() {
         let l_unwrap = match l {
             Ok(l_ok) => l_ok,
@@ -284,7 +280,7 @@ pub fn read_bad_datetimes(fin: &PathBuf) -> Vec<NaiveDateTime> {
                 continue;
             }
         };
-        bad_datetimes.push(NaiveDateTime::parse_from_str(&l_unwrap, DT_FORMAT).unwrap());
+        bad_datetimes.push(DateTime::parse_from_rfc3339(&l_unwrap).unwrap());
     }
     return bad_datetimes;
 }
@@ -381,9 +377,12 @@ mod tests {
         let mut timezone: i32 = -8;
         timezone *= 60 * 60;
         let timezone_fixed_offset = FixedOffset::east(timezone);
+        let dtfmt = "%Y-%b-%d-%H:%M:%S%z";
 
         let dtstr = "2021-11-07T01:30:00-07:00";
         let dtiso = DateTime::parse_from_rfc3339(dtstr).unwrap();
+        let dtiso_strparsed = DateTime::parse_from_str(dtstr, dtfmt).unwrap();
+        println!("default parser gives {}, string parser gives {}", dtiso, dtiso_strparsed);
         let dtfix = dtiso.with_timezone(&timezone_fixed_offset);
         println!("datetime str {} parsed as {}, fixed {}", dtstr, dtiso, dtfix);
 
