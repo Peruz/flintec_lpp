@@ -1,6 +1,5 @@
 use chrono::prelude::*;
 use flintec_lpp::log::*;
-use flintec_lpp::DT_FORMAT;
 use flintec_lpp::ERROR_FLT_PARSE;
 use flintec_lpp::{ERROR_STR_GENERAL, ERROR_STR_INVALID, ERROR_STR_NONE, ERROR_STR_SKIPPED};
 use std::convert::TryInto;
@@ -22,9 +21,10 @@ fn main() {
     // in this case, it is defined here and it captures: socket and timeout.
     // Then we can call the closure anywhere, without bringing around also socket and timeout.
     // This closure takes no arguments because it only needs these environmental variables,
-    // no additional argument is required to init the connection, it while be called as closure().
+    // no additional argument (at calling time) is required to init the connection.
+    // It while be called as closure().
     // Arguments are added |args| when the env variables in the defining env should be combined
-    // with arguments given at calling time.
+    // with arguments given at calling time, i.e., closure(arg1, arg2, ...).
     let ipaddr: Ipv4Addr = ip.parse().expect("arg string is not a valid ip address");
     let socket = SocketAddrV4::new(ipaddr, port);
     let init_connection = || -> Result<TcpStream, Error> {
@@ -57,9 +57,9 @@ fn main() {
     let minutes_duration: chrono::Duration = chrono::Duration::minutes(minutes as i64);
     let dt_now: DateTime<Local> = Local::now();
     let mut dtr: DateTime<Local> = chrono_first_rounded(dt_now, minutes_duration);
-    let mut dtr_str = dtr.format(DT_FORMAT).to_string();
+    let mut dtr_str = dtr.to_rfc3339_opts(SecondsFormat::Secs, false);
     let mut dtr_next = dtr + minutes_duration;
-    let mut dtr_next_str = dtr_next.format(DT_FORMAT).to_string();
+    let mut dtr_next_str = dtr_next.to_rfc3339_opts(SecondsFormat::Secs, false);
     println!(
         "starting at: {}, and then repeating from {} every {} minute(s)",
         dtr_str, dtr_next_str, minutes
@@ -171,7 +171,7 @@ fn main() {
                 }
             }
             dtr_next = dtr_next + minutes_duration;
-            dtr_next_str = dtr_next.format(DT_FORMAT).to_string();
+            dtr_next_str = dtr_next.to_rfc3339_opts(SecondsFormat::Secs, false);
         }
 
         // wait for the next loop
@@ -181,7 +181,7 @@ fn main() {
         // prepare for next loop
         dtr = dtr_next;
         dtr_next = dtr + minutes_duration;
-        dtr_str = dtr.format(DT_FORMAT).to_string();
-        dtr_next_str = dtr_next.format(DT_FORMAT).to_string();
+        dtr_str = dtr.to_rfc3339_opts(SecondsFormat::Secs, false);
+        dtr_next_str = dtr_next.to_rfc3339_opts(SecondsFormat::Secs, false);
     }
 }
