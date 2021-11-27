@@ -256,7 +256,6 @@ impl TimeLoad {
         }
         Ok(())
     }
-
 }
 
 /// If longer than one week, keep year, month and day, drop hours;
@@ -405,11 +404,17 @@ mod tests {
         let dtstr = "2021-11-07T01:30:00-07:00";
         let dtiso = DateTime::parse_from_rfc3339(dtstr).unwrap();
         let dtfix = dtiso.with_timezone(&timezone_fixed_offset);
-        println!("datetime str {} parsed as {}, fixed {}", dtstr, dtiso, dtfix);
+        println!(
+            "datetime str {} parsed as {}, fixed {}",
+            dtstr, dtiso, dtfix
+        );
         let dtstr = "2021-11-07T01:30:00-08:00";
         let dtiso = DateTime::parse_from_rfc3339(dtstr).unwrap();
         let dtfix = dtiso.with_timezone(&timezone_fixed_offset);
-        println!("datetime str {} parsed as {}, fixed {}", dtstr, dtiso, dtfix);
+        println!(
+            "datetime str {} parsed as {}, fixed {}",
+            dtstr, dtiso, dtfix
+        );
     }
 
     // #[test]
@@ -465,5 +470,4 @@ mod tests {
     //     let local_offset = dtnow.offset();
     //     println!("local offet is {}", local_offset);
     // }
-
 }
