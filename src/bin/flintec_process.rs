@@ -3,6 +3,7 @@ use flintec_lpp::mavg;
 use flintec_lpp::process::parse_cli;
 use flintec_lpp::read_bad_datetimes;
 use flintec_lpp::TimeLoad;
+use chrono::prelude::*;
 
 fn main() {
     let (
@@ -23,7 +24,11 @@ fn main() {
     println!("Reading time series in RFC3339 - ISO8601 and resetting to timezone {}", timezone);
 
     println!("> read data from {}", csvin.to_str().unwrap());
-    let tw = TimeLoad::from_csv(csvin);
+    let mut tw = TimeLoad::from_csv(csvin);
+
+    let timezone_seconds = timezone * 60 * 60;
+    let timezone_fixed_offset = FixedOffset::east(timezone_seconds);
+    tw.time.iter_mut().for_each(|t| *t = t.with_timezone(&timezone_fixed_offset));
 
     tw.is_ordered();
 

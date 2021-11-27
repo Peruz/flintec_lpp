@@ -16,7 +16,7 @@ pub fn parse_cli() -> (
     f64,
     Option<PathBuf>,
     Option<(NaiveTime, NaiveTime)>,
-    i8,
+    i32,
 ) {
     let arg_in_raw_data = Arg::with_name("in_raw_data")
         .help("name for the input csv file with the data to process")
@@ -34,13 +34,13 @@ pub fn parse_cli() -> (
         .short("s")
         .long("mavg_side")
         .takes_value(true)
-        .default_value("180");
+        .default_value("1");
     let arg_mavg_max_missing_values = Arg::with_name("mavg_max_missing_values")
         .help("maximum missing number of values for the moving average")
         .short("mmv")
         .long("mavg_max_missing_values")
         .takes_value(true)
-        .default_value("10000");
+        .default_value("2");
     let arg_mavg_max_missing_weight = Arg::with_name("mavg_max_missing_weight")
         .help("maximum percentage of missing weight for the moving average")
         .short("mmw")
@@ -52,7 +52,7 @@ pub fn parse_cli() -> (
         .short("cw")
         .long("mavg_central_weight")
         .takes_value(true)
-        .default_value("5");
+        .default_value("3");
     let arg_mavg_side_weight = Arg::with_name("mavg_side_weight")
         .help("weight of the mavg ends")
         .short("sw")
@@ -159,7 +159,7 @@ pub fn parse_cli() -> (
     let timezone = cli_args
         .value_of("timezone")
         .unwrap_or_default()
-        .parse::<i8>()
+        .parse::<i32>()
         .unwrap();
     return (
         csvin,
