@@ -34,28 +34,24 @@ pub fn parse_cli() -> (
         .short("s")
         .long("mavg_side")
         .takes_value(true)
-        .default_value("1");
+        .default_value("2");
     let arg_mavg_max_missing_values = Arg::with_name("mavg_max_missing_values")
         .help("maximum missing number of values for the moving average")
-        .short("mmv")
         .long("mavg_max_missing_values")
         .takes_value(true)
-        .default_value("2");
+        .default_value("3");
     let arg_mavg_max_missing_weight = Arg::with_name("mavg_max_missing_weight")
         .help("maximum percentage of missing weight for the moving average")
-        .short("mmw")
         .long("mavg_max_missing_weight")
         .takes_value(true)
         .default_value("80");
     let arg_mavg_central_weight = Arg::with_name("mavg_central_weight")
         .help("weight of the mavg central value")
-        .short("cw")
         .long("mavg_central_weight")
         .takes_value(true)
         .default_value("3");
     let arg_mavg_side_weight = Arg::with_name("mavg_side_weight")
         .help("weight of the mavg ends")
-        .short("sw")
         .long("mavg_side_weight")
         .takes_value(true)
         .default_value("1");
@@ -71,19 +67,18 @@ pub fn parse_cli() -> (
         .default_value("13000");
     let arg_bad_datetimes = Arg::with_name("bad_datetimes")
         .help("name of the file with bad datetimes to be removed")
-        .short("b")
         .long("bad_datetimes")
         .takes_value(true)
         .required(false);
     let arg_bad_time_interval = Arg::with_name("bad_time_interval")
         .help("daily time interval to be removed")
-        .short("t")
         .multiple(true)
         .long("bad_time_interval")
         .takes_value(true)
         .required(false);
     let ard_timezone = Arg::with_name("timezone")
         .help("timezone standard time relative to UTC")
+        .allow_hyphen_values(true)
         .long("timezone")
         .takes_value(true)
         .default_value("-8");
@@ -104,6 +99,11 @@ pub fn parse_cli() -> (
         .arg(arg_bad_time_interval)
         .arg(ard_timezone)
         .get_matches();
+
+    println!(
+        "{:?} value of mavg_max_missing_values",
+        cli_args.value_of("mavg_max_missing_values")
+    );
 
     let csvin = PathBuf::from(cli_args.value_of("in_raw_data").unwrap());
     let csvout = match cli_args.value_of("out_proc_data") {
@@ -161,6 +161,7 @@ pub fn parse_cli() -> (
         .unwrap_or_default()
         .parse::<i32>()
         .unwrap();
+
     return (
         csvin,
         csvout,

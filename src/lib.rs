@@ -7,7 +7,6 @@ pub mod log;
 pub mod plot;
 pub mod process;
 
-
 // constants
 pub const VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
 
@@ -31,7 +30,6 @@ pub struct TimeLoad {
 }
 
 impl TimeLoad {
-
     /// Initiate a new TimeLoad instance
     /// using the given capacity for the time and load vectors
     pub fn new(capacity: usize) -> TimeLoad {
@@ -47,8 +45,8 @@ impl TimeLoad {
     /// Do not check the continuity of the time series and presence of error flags,
     /// these are checked separately afterwards
     pub fn from_csv<P>(fin: P) -> TimeLoad
-        where
-            P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
     {
         let file = File::open(fin).unwrap();
         let buf = BufReader::new(file);
@@ -67,7 +65,10 @@ impl TimeLoad {
             let parsed_datetime = match DateTime::parse_from_rfc3339(l_split_datetime) {
                 Ok(parsed_datetime) => parsed_datetime,
                 Err(e) => {
-                    println!("Could not parse datetime: {}, error {}", l_split_datetime, e);
+                    println!(
+                        "Could not parse datetime: {}, error {}",
+                        l_split_datetime, e
+                    );
                     continue;
                 }
             };
@@ -75,7 +76,10 @@ impl TimeLoad {
             match l_split_load.parse::<f64>() {
                 Ok(parsed_load) => timeload.load.push(parsed_load),
                 Err(e) => {
-                    println!("Could not parse load: {}, at datetime {}. Error: {}", l_split_load, parsed_datetime, e);
+                    println!(
+                        "Could not parse load: {}, at datetime {}. Error: {}",
+                        l_split_load, parsed_datetime, e
+                    );
                     timeload.load.push(f64::NAN);
                 }
             }
@@ -84,18 +88,26 @@ impl TimeLoad {
     }
 
     pub fn is_ordered(&self) {
-        self.time
-            .windows(2)
-            .for_each(|w|
-                assert!(w[1] > w[0], "time series is not ordered: {} < {}", w[1], w[0])
-            );
+        self.time.windows(2).for_each(|w| {
+            assert!(
+                w[1] > w[0],
+                "time series is not ordered: {} < {}",
+                w[1],
+                w[0]
+            )
+        });
     }
 
     pub fn is_ordered_and_continuous(&self) {
         self.time
             .windows(2)
             .map(|w| {
-                assert!(w[1] > w[0], "time series is not ordered: {} < {}", w[1], w[0]);
+                assert!(
+                    w[1] > w[0],
+                    "time series is not ordered: {} < {}",
+                    w[1],
+                    w[0]
+                );
                 w[1] - w[0]
             })
             .reduce(|wp, wn| {
@@ -111,7 +123,12 @@ impl TimeLoad {
     /// Use the minimum time interval in the data
     /// to determine the desired time step for the output.
     pub fn fill_missing_with_nan(&self) -> TimeLoad {
-        let min_delta = self.time.windows(2).map(|dtw| dtw[1] - dtw[0]).min().unwrap();
+        let min_delta = self
+            .time
+            .windows(2)
+            .map(|dtw| dtw[1] - dtw[0])
+            .min()
+            .unwrap();
         let mut timeload = TimeLoad::new(self.time.len());
         for (dtw, load) in self.time.windows(2).zip(self.load.iter()) {
             let mut current_dt: DateTime<FixedOffset> = dtw[0];
@@ -183,8 +200,8 @@ impl TimeLoad {
     /// Write the datetime and load columns as a csv at the given path.
     /// Use RFC3339 - ISO8601 for datetime.
     pub fn to_csv<P>(self, fout: P)
-        where
-            P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
     {
         let file = File::create(fout).unwrap();
         let mut buf = BufWriter::new(file);
@@ -233,25 +250,19 @@ impl TimeLoad {
                 titer.next();
                 continue;
             } else {
-                let area = AreaSeries::new(
-                    titer
-                        .zip(wchunk)
-                        .map(|(x, y)| (*x, *y)),
-                    0.0,
-                    &RED.mix(0.2),
-                )
-                .border_style(BLACK.stroke_width(1));
+                let area =
+                    AreaSeries::new(titer.zip(wchunk).map(|(x, y)| (*x, *y)), 0.0, &RED.mix(0.2))
+                        .border_style(BLACK.stroke_width(1));
                 chart.draw_series(area)?;
             }
         }
         Ok(())
     }
-
 }
 
-    /// If longer than one week, keep year, month and day, drop hours;
-    /// if not, but longer than one day, add hours.
-    /// Otherwise, shorter than one day, keep also minutes.
+/// If longer than one week, keep year, month and day, drop hours;
+/// if not, but longer than one day, add hours.
+/// Otherwise, shorter than one day, keep also minutes.
 pub fn suitable_xfmt(d: chrono::Duration) -> &'static str {
     let xfmt = if d > chrono::Duration::weeks(1) {
         "%y-%m-%d"
@@ -275,9 +286,9 @@ impl std::fmt::Display for TimeLoad {
 
 /// Read bad datetimes to skip, always from RFC3339 - ISO8601 format
 pub fn read_bad_datetimes<P>(fin: P) -> Vec<DateTime<FixedOffset>>
-        where
-            P: AsRef<Path>,
-    {
+where
+    P: AsRef<Path>,
+{
     let file = File::open(fin).unwrap();
     let buf = BufReader::new(file);
     let mut bad_datetimes: Vec<DateTime<FixedOffset>> = Vec::new();
@@ -450,5 +461,4 @@ mod tests {
     //     let local_offset = dtnow.offset();
     //     println!("local offet is {}", local_offset);
     // }
-
 }
