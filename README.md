@@ -6,22 +6,26 @@ CLI app to log load cells via Flintec DAD 141.1 digital amplifier with TCP-UTF8.
 The app allows automatic logging at rounded intervals of minutes or hours that are divisors of 1 day.
 Valid minutes intervals are 1, 2, 3, 5, 10, 15, 20, 30, and 60 minute(s).
 Valid hours intervals are 1, 2, 3, 6, 12, and 24 hour(s).
+The standard format RFC 3339 - ISO 8601 is used for the datetime to be more general and robust to time zones and daylight saving.
 
 ### 2 flintec_process
 This CLI app processes the load time series with the following steps:
 1. Read and parse the logged load time series.
-2. Make the time series continuous using the minimum time interval found in the data.
-3. Optionally, replace logging errors with NAN.
-4. Optionally, replace given datetimes from file with NAN (e.g., values disturbed by maintenance).
-5. Optionally, replace a given daily interval with NAN (e.g., daily temperature effects).
-6. Optionally, use a weighted moving average to smooth the time series (e.g., wind and temperature) and fill the NAN values.
-It uses a moving average with linear weights between the user-defined central weight (typically the max weight) and the side weight (typically the minimum weight).
-The width of the window can be adjusted by specifying the number of data points on each side.
-Constraints can be set to define when the missing information is too large to fill the NAN values (number of load values or their cumulative associated weight).
+2. Convert all datetime to a chosen time zone, i.e., removing daylight saving if needed or changing the time zone is desired.
+3. Make the time series continuous using the minimum time interval found in the data.
+4. Optionally, replace logging errors with NAN.
+5. Optionally, replace given datetimes from an input file with NAN (e.g., values disturbed by maintenance).
+6. Optionally, replace a given daily interval with NAN (e.g., daily temperature effects or maintenance period).
+7. Optionally, use a weighted moving average to smooth the time series (e.g., wind and temperature) and fill the NAN values.
+It uses a moving average with linear weights between a user-defined central weight (typically the max weight) and a side weight (typically the minimum weight).
+The width of the window can be adjusted by specifying the number of data points on each side, this parameterization guaranties the window symmetry.
+Constraints can be set to define when the missing information is too large to fill the NAN values (maximum number of missing load values or their cumulative associated weight).
 8. The CLI app saves a new csv file compatible with flintec_plot.
 
 ### 3 flintec_plot
-CLI app to plot the load time series saved by flintec_log as a svg file, automatically adjust the datetime format.
+CLI app to plot the load time series saved by flintec_log or flintec_process.
+The app automatically adjust the datetime format.
+The output format of the figure is svg.
 
 Note, throughout the crate, load is used for the load cells data, while weight is used for the moving average.
 
@@ -30,11 +34,6 @@ Note, throughout the crate, load is used for the load cells data, while weight i
 Documentation: [rust_crate](https://crates.io/crates/flintec_lpp)
 
 The CLI apps are written in the [Rust](https://www.rust-lang.org) programming language.
-
-# Notes on Chrono
-
-The monitorning saves the data in Local time, i.e., uses daylight saving, convenient for practical reasons.  
-However, daylight saving does not make sense
 
 # Notes on the DAD141.1
 
@@ -125,7 +124,7 @@ It is used to protect the mobile parts of the mounting module during their movem
 1. open terminal and copy file from raspberry to laptop with ``scp``, e.g., ``scp user@localhost:~/path/to/file/loadcells.log ./Desktop/``
 
 ### Close logging
-1. ssh to rapberry pi, ``ssh user@ip``, as step 1 of starting
+1. ssh to raspberry pi, ``ssh user@ip``, as step 1 of starting
 2. find tmux session with ``tmux ls``, as step 5 of starting
 3. close running logging with ``Ctrl+c``, should return *[exited]*
 4. double check with ``tmux ls``, should return *no server running on ...*

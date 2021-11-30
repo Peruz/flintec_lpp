@@ -2,7 +2,7 @@ use super::VERSION;
 use clap::{App, Arg};
 use std::path::PathBuf;
 
-/// Takes the CLI arguments that cotrol the plotting of the load time series.
+/// Takes the CLI arguments that control the plotting of the load time series.
 pub fn parse_cli() -> (PathBuf, PathBuf) {
     let arg_csvin = Arg::with_name("input_csvfile")
         .help("name for the csv file")
@@ -16,10 +16,10 @@ pub fn parse_cli() -> (PathBuf, PathBuf) {
         .short("o")
         .long("svgfile")
         .takes_value(true);
-    let cli_args = App::new("plot load cells data")
+    let cli_args = App::new("Flintec_plot")
         .version(VERSION.unwrap_or("unknown"))
         .author("Luca Peruzzo")
-        .about("simple cli app to plot the load time series")
+        .about("cli app to plot the load time series")
         .arg(arg_csvin)
         .arg(arg_svgout)
         .get_matches();

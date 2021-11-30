@@ -60,10 +60,10 @@ pub fn parse_cli_log() -> (String, String, u16, String, u32, u64, bool) {
         .long("verbose")
         .takes_value(false)
         .required(false);
-    let cli_args = App::new("log load cells")
+    let cli_args = App::new("Flintec_log")
         .version(VERSION.unwrap_or("unknown"))
         .author("Luca Peruzzo")
-        .about("simple cli app to log the load cells")
+        .about("cli app to log the load cells")
         .arg(arg_csvfile)
         .arg(arg_minutes)
         .arg(arg_hours)

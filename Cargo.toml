@@ -1,6 +1,6 @@
 [package]
 name = "flintec_lpp"
-version = "11.0.0"
+version = "11.0.1"
 authors = ["Peruz <lucaperuzzo@outlook.com>"]
 edition = "2018"
 license = "GPL-3.0"
@@ -10,6 +10,6 @@ description = "CLI apps for logging, processing, and plotting load time series f
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-chrono = "0.4"
-clap = "2.33"
-plotters = "0.3"
+chrono = "0.4.*"
+clap = "2.*"
+plotters = "0.3.*"

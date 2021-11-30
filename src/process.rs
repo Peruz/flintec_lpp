@@ -82,10 +82,10 @@ pub fn parse_cli() -> (
         .long("timezone")
         .takes_value(true)
         .default_value("-8");
-    let cli_args = App::new("smooth the weight time series")
+    let cli_args = App::new("Flintec_process")
         .version(VERSION.unwrap_or("unknown"))
         .author("Luca Peruzzo")
-        .about("cli to smooth the weight time series")
+        .about("cli app to process the load time series: filter, refill, and smooth.")
         .arg(arg_in_raw_data)
         .arg(arg_out_proc_data)
         .arg(arg_side)
@@ -99,11 +99,6 @@ pub fn parse_cli() -> (
         .arg(arg_bad_time_interval)
         .arg(ard_timezone)
         .get_matches();
-
-    println!(
-        "{:?} value of mavg_max_missing_values",
-        cli_args.value_of("mavg_max_missing_values")
-    );
 
     let csvin = PathBuf::from(cli_args.value_of("in_raw_data").unwrap());
     let csvout = match cli_args.value_of("out_proc_data") {
