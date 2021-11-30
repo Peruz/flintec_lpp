@@ -212,8 +212,8 @@ impl TimeLoad {
 
     /// Plot the load time series to svg.
     pub fn plot_datetime(&self, fout: P) -> Result<(), Box<dyn std::error::Error>>
-        where
-            P: AsRef<Path>,
+    where
+        P: AsRef<Path>,
     {
         let (xmin, xmax) = min_and_max(self.time.iter());
         let xspan: chrono::Duration = xmax - xmin;
