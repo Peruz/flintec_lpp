@@ -195,8 +195,8 @@ impl TimeLoad {
         });
     }
 
-    /// Write the datetime and load columns as a csv at the given path.
-    /// Use RFC3339 - ISO8601 for datetime.
+    /// Write the datetime and load columns to a csv file at the given path.
+    /// Use RFC 3339 - ISO 8601 for datetime.
     pub fn to_csv<P>(self, fout: P)
     where
         P: AsRef<Path>,
@@ -211,9 +211,10 @@ impl TimeLoad {
     }
 
     /// Plot the load time series to svg.
-    /// Takes DateTime<FixedOffset> and convert to Local NaiveDateTime,
-    /// i.e., drops the time zone but keep the time as it is.
-    pub fn plot_datetime(&self, fout: PathBuf) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn plot_datetime(&self, fout: P) -> Result<(), Box<dyn std::error::Error>>
+        where
+            P: AsRef<Path>,
+    {
         let (xmin, xmax) = min_and_max(self.time.iter());
         let xspan: chrono::Duration = xmax - xmin;
         let xfmt = suitable_xfmt(xspan);
@@ -282,7 +283,7 @@ impl std::fmt::Display for TimeLoad {
     }
 }
 
-/// Read bad datetimes to skip, always from RFC3339 - ISO8601 format
+/// Read a list of bad datetimes to skip, always from RFC 3339 - ISO 8601 format.
 pub fn read_bad_datetimes<P>(fin: P) -> Vec<DateTime<FixedOffset>>
 where
     P: AsRef<Path>,
@@ -332,7 +333,7 @@ pub fn make_window(w_central: f64, w_side: f64, side: usize) -> Vec<f64> {
 
 /// Roll the weighted moving window w over the data v,
 /// also filling the NAN values with the weighted average when possible:
-/// 1) sufficient number of data, i.e., number missing data under the window < max_missing_v.
+/// 1) sufficient number of data, i.e., number missing data under the window < max_missing_v;
 /// 2) the window weight associated with the present data is sufficient, i.e.,
 ///     the percentage of missing weight is < than max_missing_wpct.
 pub fn mavg(v: &[f64], w: &[f64], max_missing_v: usize, max_missing_wpct: f64) -> Vec<f64> {

@@ -1,6 +1,6 @@
 [package]
 name = "flintec_lpp"
-version = "11.0.1"
+version = "11.0.2"
 authors = ["Peruz <lucaperuzzo@outlook.com>"]
 edition = "2018"
 license = "GPL-3.0"
