@@ -2,7 +2,7 @@ use chrono::prelude::*;
 use plotters::prelude::*;
 use std::fs::File;
 use std::io::{BufRead, BufReader, BufWriter, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 pub mod log;
 pub mod plot;
 pub mod process;
@@ -211,7 +211,7 @@ impl TimeLoad {
     }
 
     /// Plot the load time series to svg.
-    pub fn plot_datetime(&self, fout: P) -> Result<(), Box<dyn std::error::Error>>
+    pub fn plot_datetime<P>(&self, fout: P) -> Result<(), Box<dyn std::error::Error>>
     where
         P: AsRef<Path>,
     {
